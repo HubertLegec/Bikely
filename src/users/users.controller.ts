@@ -1,9 +1,23 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  Post,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  @Get('/:id')
+  async getUser(@Param('id') id: string) {
+    const user = await this.usersService.findById(id);
+    if (user) return user;
+    else throw new NotFoundException();
+  }
 
   @Post()
   async createUser(
@@ -11,7 +25,7 @@ export class UsersController {
     @Body('password') password: string,
     @Body('email') email: string,
   ) {
-    console.log(username, password, email);
     const newUser = await this.usersService.create(username, password, email);
+    return newUser;
   }
 }
