@@ -2,16 +2,26 @@ import { Injectable, NotFoundException, UseGuards } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './user.model';
-import { JwtAuthGuard } from '../auth/jwt.guard';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
   constructor(@InjectModel('User') private readonly userModel: Model<User>) {}
 
-  async create(username: string, password: string, email: string) {
-    const newUser = new this.userModel({ username, password, email });
+  async create(userData: User) {
+    if (await this.findByEmail(userData.email)) {
+      return 'email is already in use';
+    }
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(userData.password, salt);
+    const newUser = new this.userModel({
+      username: userData.username,
+      password: hashedPassword,
+      email: userData.email,
+    });
+
     const result = await newUser.save();
-    return result.id;
+    if (result) return result.id;
   }
 
   async findById(id: string) {
@@ -23,11 +33,5 @@ export class UsersService {
       if (err) NotFoundException;
       else return user;
     });
-  }
-
-  async findOrCreate(email: string) {
-    const user = await this.userModel.findOne({ email: email });
-    if (user) return user;
-    else this.create('', '', email);
   }
 }

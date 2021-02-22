@@ -1,10 +1,10 @@
 import {
-  Body,
   Controller,
   Get,
   NotFoundException,
   Param,
   Post,
+  Request,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 
@@ -20,12 +20,8 @@ export class UsersController {
   }
 
   @Post()
-  async createUser(
-    @Body('username') username: string,
-    @Body('password') password: string,
-    @Body('email') email: string,
-  ) {
-    const newUser = await this.usersService.create(username, password, email);
+  async createUser(@Request() req) {
+    const newUser = await this.usersService.create(req.body);
     return newUser;
   }
 }
