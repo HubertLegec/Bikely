@@ -1,7 +1,22 @@
-import { Controller, Get, Post, Req, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
+import { LoginDTO } from './auth.dto';
 import { AuthService } from './auth.service';
-import { GoogleGuard } from './google.guard';
-import { LocalAuthGuard } from './local.guard';
+import { GoogleGuard } from './guards/google.guard';
+import { LocalAuthGuard } from './guards/local.guard';
+import { JwtAuthGuard } from './guards/jwt.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -14,17 +29,26 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(GoogleGuard)
   async googleAuthRedirect(@Req() req) {
-    return this.authService.googleLogin(req);
+    return this.authService.googleLogin(req.user);
   }
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  async login(@Request() req) {
-    return this.authService.login(req.body);
+  @ApiOkResponse({ description: 'User Login' })
+  @ApiNotFoundResponse({ description: 'User does not exist' })
+  @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
+  async login(@Body() body: LoginDTO) {
+    return this.authService.login(body);
   }
 
   @Post('register')
   async register(@Request() req) {
     return this.authService.register(req.body);
+  }
+
+  @Get('test')
+  @UseGuards(JwtAuthGuard)
+  whatever() {
+    return 'działa';
   }
 }

@@ -1,7 +1,13 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
+import { AuthenticateDTO, GoogleDTO, LoginDTO, RegisterDTO } from './auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -10,28 +16,30 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(email: string, password: string): Promise<any> {
+  async validateUser(userData: AuthenticateDTO): Promise<any> {
+    const { email, password } = userData;
     const user = await this.usersService.findByEmail(email);
 
-    if (user && (await bcrypt.compare(password, user.password))) {
-      const { password, ...result } = user;
-      return result;
-    }
-    return null;
+    if (user) {
+      if (await bcrypt.compare(password, user.password)) {
+        const { password, ...result } = user;
+        return result;
+      } else
+        throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+    } else throw new HttpException('User does not exist', HttpStatus.NOT_FOUND);
   }
 
-  googleLogin(req) {
-    const { user } = req;
+  googleLogin(user: GoogleDTO) {
     if (!user) throw new BadRequestException();
     return this.login(user);
   }
 
-  async login(user: any): Promise<any> {
+  async login(user: LoginDTO | GoogleDTO): Promise<any> {
     const payload = { email: user.email, sub: user.id };
     return { access_token: this.jwtService.sign(payload) };
   }
 
-  async register(userData: any): Promise<any> {
+  async register(userData: RegisterDTO): Promise<any> {
     return await this.usersService.create(userData);
   }
 }
