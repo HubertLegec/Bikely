@@ -29,7 +29,7 @@ export class AuthService {
     } else throw new HttpException('User does not exist', HttpStatus.NOT_FOUND);
   }
 
-  googleLogin(user: GoogleDTO) {
+  async googleLogin(user: GoogleDTO) {
     if (!user) throw new BadRequestException();
     return this.login(user);
   }

@@ -16,7 +16,6 @@ import { LoginDTO } from './auth.dto';
 import { AuthService } from './auth.service';
 import { GoogleGuard } from './guards/google.guard';
 import { LocalAuthGuard } from './guards/local.guard';
-import { JwtAuthGuard } from './guards/jwt.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -43,12 +42,6 @@ export class AuthController {
 
   @Post('register')
   async register(@Request() req) {
-    return this.authService.register(req.body);
-  }
-
-  @Get('test')
-  @UseGuards(JwtAuthGuard)
-  whatever() {
-    return 'działa';
+    return await this.authService.register(req.body);
   }
 }
