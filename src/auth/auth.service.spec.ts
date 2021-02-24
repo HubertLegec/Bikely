@@ -3,10 +3,9 @@ import { AuthService } from './auth.service';
 import { User } from 'src/types/user';
 import { UsersService } from '../users/users.service';
 import { HttpException, BadRequestException } from '@nestjs/common';
-import { RegisterDTO } from 'src/auth/auth.dto';
+import { GoogleDTO } from 'src/auth/auth.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { GoogleDTO } from '../../dist/auth/auth.dto';
 
 const SALT_ROUNDS = 10;
 
@@ -50,9 +49,7 @@ describe('AuthService', () => {
       const { id, username, ...inputData } = mockUser();
       const foundUser = mockUserDoc({ password: 'password' });
       const { password, ...result } = mockUserDoc();
-      jest
-        .spyOn(userService, 'findByEmail')
-        .mockResolvedValueOnce(foundUser as any);
+      jest.spyOn(userService, 'findByEmail').mockResolvedValueOnce(foundUser as any);
       expect(authService.validateUser(inputData)).resolves.toEqual(result);
     });
 
@@ -60,21 +57,15 @@ describe('AuthService', () => {
       const { id, username, ...inputData } = mockUser();
       const foundUser = mockUserDoc({ password: 'differentPassword' });
 
-      jest
-        .spyOn(userService, 'findByEmail')
-        .mockResolvedValueOnce(foundUser as any);
-      expect(authService.validateUser(inputData)).rejects.toThrowError(
-        HttpException,
-      );
+      jest.spyOn(userService, 'findByEmail').mockResolvedValueOnce(foundUser as any);
+      expect(authService.validateUser(inputData)).rejects.toThrowError(HttpException);
     });
 
     it('Throws not found', () => {
       const { id, username, ...inputData } = mockUser();
 
       jest.spyOn(userService, 'findByEmail').mockResolvedValueOnce(undefined);
-      expect(authService.validateUser(inputData)).rejects.toThrowError(
-        HttpException,
-      );
+      expect(authService.validateUser(inputData)).rejects.toThrowError(HttpException);
     });
 
     describe('login', () => {
@@ -99,9 +90,7 @@ describe('AuthService', () => {
       });
 
       it('Throws bad request exception', async () => {
-        expect(() => authService.googleLogin(null)).rejects.toThrow(
-          BadRequestException,
-        );
+        expect(() => authService.googleLogin(null)).rejects.toThrow(BadRequestException);
       });
     });
     describe('register', () => {
@@ -113,12 +102,7 @@ describe('AuthService', () => {
   });
 });
 
-const mockUser = (
-  username = 'username',
-  password = 'password',
-  id = 'id',
-  email = 'email@test.com',
-) => {
+const mockUser = (username = 'username', password = 'password', id = 'id', email = 'email@test.com') => {
   return {
     username,
     password,
@@ -137,9 +121,7 @@ const googleDto: GoogleDTO = {
 const mockUserDoc = (mock?: Partial<User>): Partial<User> => {
   return {
     username: mock?.username || 'username',
-    password: mock?.password
-      ? bcrypt.hashSync(mock.password, SALT_ROUNDS)
-      : bcrypt.hashSync('password', SALT_ROUNDS),
+    password: mock?.password ? bcrypt.hashSync(mock.password, SALT_ROUNDS) : bcrypt.hashSync('password', SALT_ROUNDS),
     id: mock?.id || 'id',
     email: mock?.email || 'email@test.com',
     depopulate(path: string) {
@@ -156,8 +138,4 @@ const usersList = [
   mockUser('test3', 'password3', 'id3', 'email3@test.com'),
 ];
 
-const usersDocList = [
-  mockUserDoc(),
-  mockUserDoc(usersList[1]),
-  mockUserDoc(usersList[2]),
-];
+const usersDocList = [mockUserDoc(), mockUserDoc(usersList[1]), mockUserDoc(usersList[2])];

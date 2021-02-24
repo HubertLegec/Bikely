@@ -18,16 +18,11 @@ describe('UsersController', () => {
               const user = usersList.find((user) => user.id === id);
               return user;
             }),
-            create: jest
-              .fn()
-              .mockImplementation(async (userDTO: RegisterDTO) => {
-                if (usersList.find((user) => user.email === userDTO.email)) {
-                  throw new HttpException(
-                    'User already exists',
-                    HttpStatus.BAD_REQUEST,
-                  );
-                } else return 'id';
-              }),
+            create: jest.fn().mockImplementation(async (userDTO: RegisterDTO) => {
+              if (usersList.find((user) => user.email === userDTO.email)) {
+                throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
+              } else return 'id';
+            }),
           },
         },
       ],
@@ -46,9 +41,7 @@ describe('UsersController', () => {
     });
 
     it('Should throw not found exception', async () => {
-      expect(() => controller.getUserById('111')).rejects.toThrow(
-        NotFoundException,
-      );
+      expect(() => controller.getUserById('111')).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -58,9 +51,7 @@ describe('UsersController', () => {
     });
 
     it('Should throw error: user already exists', async () => {
-      expect(() => controller.createUser(createdExistingUser)).rejects.toThrow(
-        HttpException,
-      );
+      expect(() => controller.createUser(createdExistingUser)).rejects.toThrow(HttpException);
     });
   });
 });

@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
@@ -11,10 +6,7 @@ import { AuthenticateDTO, GoogleDTO, LoginDTO, RegisterDTO } from './auth.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(
-    private usersService: UsersService,
-    private jwtService: JwtService,
-  ) {}
+  constructor(private usersService: UsersService, private jwtService: JwtService) {}
 
   async validateUser(userData: AuthenticateDTO): Promise<any> {
     const { email, password } = userData;
@@ -24,8 +16,7 @@ export class AuthService {
       if (await bcrypt.compare(password, user.password)) {
         const { password, ...result } = user;
         return result;
-      } else
-        throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+      } else throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
     } else throw new HttpException('User does not exist', HttpStatus.NOT_FOUND);
   }
 

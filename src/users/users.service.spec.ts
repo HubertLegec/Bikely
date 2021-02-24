@@ -91,9 +91,7 @@ describe('UsersService', () => {
           exec: jest.fn().mockResolvedValueOnce(usersDocList[0] as any),
         }),
       );
-      expect(service.findByEmail('email@test.com')).resolves.toEqual(
-        usersDocList[0],
-      );
+      expect(service.findByEmail('email@test.com')).resolves.toEqual(usersDocList[0]);
     });
 
     it('Returns null', () => {
@@ -107,12 +105,7 @@ describe('UsersService', () => {
   });
 });
 
-const mockUser = (
-  username = 'username',
-  password = 'password',
-  id = 'id',
-  email = 'email@test.com',
-) => {
+const mockUser = (username = 'username', password = 'password', id = 'id', email = 'email@test.com') => {
   return {
     username,
     password,
@@ -141,8 +134,4 @@ const usersList = [
   mockUser('test3', 'password3', 'id3', 'email3@test.com'),
 ];
 
-const usersDocList = [
-  mockUserDoc(),
-  mockUserDoc(usersList[1]),
-  mockUserDoc(usersList[2]),
-];
+const usersDocList = [mockUserDoc(), mockUserDoc(usersList[1]), mockUserDoc(usersList[2])];

@@ -1,17 +1,5 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Req,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
-import {
-  ApiNotFoundResponse,
-  ApiOkResponse,
-  ApiUnauthorizedResponse,
-} from '@nestjs/swagger';
+import { Body, Controller, Get, Post, Req, Request, UseGuards } from '@nestjs/common';
+import { ApiNotFoundResponse, ApiOkResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { LoginDTO } from './auth.dto';
 import { AuthService } from './auth.service';
 import { GoogleGuard } from './guards/google.guard';
@@ -23,7 +11,9 @@ export class AuthController {
 
   @Get('google')
   @UseGuards(GoogleGuard)
-  async googleAuth() {}
+  async googleAuth() {
+    // redirect to google authorization site
+  }
 
   @Get('google/callback')
   @UseGuards(GoogleGuard)

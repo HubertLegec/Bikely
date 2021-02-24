@@ -34,20 +34,12 @@ describe('AuthController', () => {
   describe('login', () => {
     it('Returns jwt token', async () => {
       jest.spyOn(service, 'login').mockResolvedValueOnce(objectWithAccessToken);
-      expect(controller.login(loginData)).resolves.toEqual(
-        objectWithAccessToken,
-      );
+      expect(controller.login(loginData)).resolves.toEqual(objectWithAccessToken);
     });
 
     it('Returns an error', () => {
-      jest
-        .spyOn(service, 'register')
-        .mockRejectedValueOnce(
-          new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED),
-        );
-      expect(controller.register(registerData)).rejects.toThrowError(
-        HttpException,
-      );
+      jest.spyOn(service, 'register').mockRejectedValueOnce(new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED));
+      expect(controller.register(registerData)).rejects.toThrowError(HttpException);
     });
   });
 
@@ -58,14 +50,8 @@ describe('AuthController', () => {
     });
 
     it('Returns an error', () => {
-      jest
-        .spyOn(service, 'register')
-        .mockRejectedValueOnce(
-          new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED),
-        );
-      expect(controller.register(registerData)).rejects.toThrowError(
-        HttpException,
-      );
+      jest.spyOn(service, 'register').mockRejectedValueOnce(new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED));
+      expect(controller.register(registerData)).rejects.toThrowError(HttpException);
     });
   });
 });
