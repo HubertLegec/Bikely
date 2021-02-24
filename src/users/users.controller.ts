@@ -23,12 +23,8 @@ export class UsersController {
   @ApiNotFoundResponse({ description: 'User does not exist' })
   async getUserById(@Param('id') id: string) {
     const user = await this.usersService.findById(id);
-
-    if (user) {
-      const result = user.toObject();
-      delete result.password;
-      return result;
-    } else throw new NotFoundException();
+    if (user) return user;
+    throw new NotFoundException();
   }
 
   @Post()
