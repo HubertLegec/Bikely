@@ -9,6 +9,7 @@ export class BikesController {
   @Post()
   async addBike(@Body() bikeRequest: BikeRequest) {
     const id = await this.bikesService.create(bikeRequest);
+    console.log(id);
     return { id: id };
   }
 }
