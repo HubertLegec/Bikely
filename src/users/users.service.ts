@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from '../types/user';
@@ -12,13 +12,14 @@ export class UsersService {
     return user ? user.depopulate('password') : user;
   }
 
-  async create(userData: RegisterDTO) {
-    if (await this.findByEmail(userData.email)) {
-      throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
+  async create(userData: RegisterDTO): Promise<null | string> {
+    try {
+      if (await this.findByEmail(userData.email)) return null;
+      const newUser = await this.userModel.create(userData);
+      if (newUser) return newUser.id;
+    } catch (err) {
+      return err;
     }
-
-    const newUser = await this.userModel.create(userData);
-    if (newUser) return newUser.id;
   }
 
   async findById(id: string): Promise<User> {
@@ -27,7 +28,6 @@ export class UsersService {
 
   async findByEmail(email: string) {
     const result = await this.userModel.findOne({ email: email }).exec();
-
     if (!result) return null;
     return result;
   }

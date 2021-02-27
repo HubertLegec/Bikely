@@ -1,9 +1,10 @@
-import { Body, Controller, Get, Post, Req, Request, UseGuards } from '@nestjs/common';
-import { ApiNotFoundResponse, ApiOkResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
-import { LoginDTO } from './auth.dto';
+import { Body, Controller, Get, Post, Req, UseGuards, ValidationPipe } from '@nestjs/common';
+import { ApiBody, ApiNotFoundResponse, ApiOkResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { GoogleDTO, LoginDTO } from './auth.dto';
 import { AuthService } from './auth.service';
 import { GoogleGuard } from './guards/google.guard';
 import { LocalAuthGuard } from './guards/local.guard';
+import { RegisterDTO } from 'src/auth/auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -18,7 +19,7 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(GoogleGuard)
   async googleAuthRedirect(@Req() req) {
-    return this.authService.googleLogin(req.user);
+    return this.authService.googleLogin(req.user as GoogleDTO);
   }
 
   @UseGuards(LocalAuthGuard)
@@ -26,12 +27,15 @@ export class AuthController {
   @ApiOkResponse({ description: 'User Login' })
   @ApiNotFoundResponse({ description: 'User does not exist' })
   @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
-  async login(@Body() body: LoginDTO) {
+  @ApiBody({ type: LoginDTO })
+  async login(@Body(ValidationPipe) body: LoginDTO) {
     return this.authService.login(body);
   }
 
   @Post('register')
-  async register(@Request() req) {
-    return await this.authService.register(req.body);
+  @ApiBody({ type: RegisterDTO })
+  async register(@Body(ValidationPipe) body: RegisterDTO) {
+    const result = await this.authService.register(body);
+    if (result) return result;
   }
 }
