@@ -1,11 +1,12 @@
 import { NotFoundException, HttpException, HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { RegisterDTO } from 'src/auth/auth.dto';
+import { RegisterDTO } from '../auth/auth.dto';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 
 describe('UsersController', () => {
   let controller: UsersController;
+  let service: UsersService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -23,25 +24,35 @@ describe('UsersController', () => {
                 throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
               } else return 'id';
             }),
+            findByEmail: jest.fn().mockImplementation(async (email: string) => {
+              const user = usersList.find((user) => user.email === email);
+              return user;
+            }),
+            deleteUser: jest.fn().mockImplementation(async (id: string) => {
+              const user = usersList.find((user) => user.id === id);
+              return user;
+            }),
+            updateUserData: jest.fn(),
           },
         },
       ],
     }).compile();
 
     controller = module.get<UsersController>(UsersController);
+    service = module.get<UsersService>(UsersService);
   });
 
   it('Should be defined', () => {
     expect(controller).toBeDefined();
   });
 
-  describe(`GetUserById`, () => {
+  describe(`GetUserData`, () => {
     it('Should return user', () => {
-      expect(controller.getUserById('12345678')).resolves.toEqual(usersList[0]);
+      expect(controller.getUserData({ user: usersList[0] })).resolves.toEqual(usersList[0]);
     });
 
-    it('Should throw not found exception', async () => {
-      expect(() => controller.getUserById('111')).rejects.toThrow(NotFoundException);
+    it('Should throw not found exception', () => {
+      expect(() => controller.getUserData({ user: { email: 'NotExistingEmail' } })).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -50,8 +61,30 @@ describe('UsersController', () => {
       expect(controller.createUser(createdUser)).resolves.toEqual('id');
     });
 
-    it('Should throw error: user already exists', async () => {
+    it('Should throw error: user already exists', () => {
       expect(() => controller.createUser(createdExistingUser)).rejects.toThrow(HttpException);
+    });
+  });
+
+  describe('deleteUser', () => {
+    it('Should return deleted user', () => {
+      expect(controller.deleteUser(usersList[0].id)).resolves.toEqual(usersList[0]);
+    });
+
+    it('Should throw NotFoundException', () => {
+      expect(() => controller.deleteUser('notExistingId')).rejects.toThrow(new NotFoundException());
+    });
+  });
+
+  describe('update', () => {
+    it('Should return updated user', () => {
+      jest.spyOn(service, 'updateUserData').mockResolvedValueOnce(usersList[0]);
+      expect(controller.updateUser(usersList[0])).resolves.toEqual(usersList[0]);
+    });
+
+    it('Should throw not found exception', () => {
+      jest.spyOn(service, 'updateUserData').mockRejectedValueOnce(new NotFoundException());
+      expect(() => controller.updateUser(usersList[0])).rejects.toThrow(new NotFoundException());
     });
   });
 });

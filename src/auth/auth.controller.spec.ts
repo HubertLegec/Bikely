@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { LoginDTO, RegisterDTO } from 'src/auth/auth.dto';
+import { LoginDTO, RegisterDTO } from './auth.dto';
 import { HttpException, HttpStatus } from '@nestjs/common';
 
 describe('AuthController', () => {
@@ -32,7 +32,7 @@ describe('AuthController', () => {
   });
 
   describe('login', () => {
-    it('Returns jwt token', async () => {
+    it('Returns jwt token', () => {
       jest.spyOn(service, 'login').mockResolvedValueOnce(objectWithAccessToken);
       expect(controller.login(loginData)).resolves.toEqual(objectWithAccessToken);
     });

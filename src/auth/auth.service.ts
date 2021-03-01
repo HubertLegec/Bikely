@@ -16,8 +16,8 @@ export class AuthService {
       if (await bcrypt.compare(password, user.password)) {
         const { password, ...result } = user;
         return result;
-      } else throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
-    } else throw new HttpException('User does not exist', HttpStatus.NOT_FOUND);
+      } else return new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+    } else return new HttpException('User does not exist', HttpStatus.NOT_FOUND);
   }
 
   async googleLogin(user: GoogleDTO) {

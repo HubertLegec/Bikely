@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { User } from 'src/types/user';
 import { UsersService } from '../users/users.service';
-import { HttpException, BadRequestException } from '@nestjs/common';
+import { HttpException, BadRequestException, HttpStatus } from '@nestjs/common';
 import { GoogleDTO } from 'src/auth/auth.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
@@ -45,59 +45,62 @@ describe('AuthService', () => {
   });
 
   describe('validateUser', () => {
-    it('Returns user', async () => {
+    it('Returns user', () => {
       const { id, username, ...inputData } = mockUser();
       const foundUser = mockUserDoc({ password: 'password' });
       const { password, ...result } = mockUserDoc();
       jest.spyOn(userService, 'findByEmail').mockResolvedValueOnce(foundUser as any);
-      expect(authService.validateUser(inputData)).resolves.toEqual(result);
+      expect(authService.validateUser(inputData)).resolves.toMatchObject(result);
     });
 
-    it('Throws unauthorized', async () => {
+    it('returns unauthorized', () => {
       const { id, username, ...inputData } = mockUser();
       const foundUser = mockUserDoc({ password: 'differentPassword' });
 
       jest.spyOn(userService, 'findByEmail').mockResolvedValueOnce(foundUser as any);
-      expect(authService.validateUser(inputData)).rejects.toThrowError(HttpException);
+      expect(authService.validateUser(inputData)).resolves.toMatchObject(
+        new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED),
+      );
     });
 
     it('Throws not found', () => {
       const { id, username, ...inputData } = mockUser();
 
       jest.spyOn(userService, 'findByEmail').mockResolvedValueOnce(undefined);
-      expect(authService.validateUser(inputData)).rejects.toThrowError(HttpException);
+      expect(authService.validateUser(inputData)).resolves.toMatchObject(
+        new HttpException('User does not exist', HttpStatus.NOT_FOUND),
+      );
+    });
+  });
+  describe('login', () => {
+    it('Receives GoogleDTO and returns access token', () => {
+      const jwtToken = { access_token: 'jwtToken' };
+      jest.spyOn(jwtService, 'sign').mockReturnValueOnce('jwtToken');
+      expect(authService.login(googleDto)).resolves.toMatchObject(jwtToken);
     });
 
-    describe('login', () => {
-      it('Receives GoogleDTO and returns access token', () => {
-        const jwtToken = { access_token: 'jwtToken' };
-        jest.spyOn(jwtService, 'sign').mockReturnValueOnce('jwtToken');
-        expect(authService.login(googleDto)).resolves.toBe(jwtToken);
-      });
+    it('Receives LoginDTO and returns access token', () => {
+      const jwtToken = { access_token: 'jwtToken' };
+      jest.spyOn(jwtService, 'sign').mockReturnValueOnce('jwtToken');
+      expect(authService.login(mockUser())).resolves.toMatchObject(jwtToken);
+    });
+  });
 
-      it('Receives LoginDTO and returns access token', () => {
-        const jwtToken = { access_token: 'jwtToken' };
-        jest.spyOn(jwtService, 'sign').mockReturnValueOnce('jwtToken');
-        expect(authService.login(mockUser())).resolves.toBe(jwtToken);
-      });
+  describe('googleLogin', () => {
+    it('Returns jwtToken', () => {
+      const jwtToken = { access_token: 'jwtToken' };
+      jest.spyOn(jwtService, 'sign').mockReturnValueOnce('jwtToken');
+      expect(authService.googleLogin(googleDto)).resolves.toMatchObject(jwtToken);
     });
 
-    describe('googleLogin', () => {
-      it('Returns jwtToken', () => {
-        const jwtToken = { access_token: 'jwtToken' };
-        jest.spyOn(jwtService, 'sign').mockReturnValueOnce('jwtToken');
-        expect(authService.googleLogin(googleDto)).resolves.toBe(jwtToken);
-      });
-
-      it('Throws bad request exception', async () => {
-        expect(() => authService.googleLogin(null)).rejects.toThrow(BadRequestException);
-      });
+    it('Throws bad request exception', () => {
+      expect(() => authService.googleLogin(null)).rejects.toThrow(BadRequestException);
     });
-    describe('register', () => {
-      it('Returns user id after successfully creating user', () => {
-        jest.spyOn(userService, 'create').mockResolvedValueOnce('some id');
-        expect(authService.register(mockUser())).resolves.toBe('some id');
-      });
+  });
+  describe('register', () => {
+    it('Returns user id after successfully creating user', () => {
+      jest.spyOn(userService, 'create').mockResolvedValueOnce('some id');
+      expect(authService.register(mockUser())).resolves.toBe('some id');
     });
   });
 });
@@ -124,9 +127,6 @@ const mockUserDoc = (mock?: Partial<User>): Partial<User> => {
     password: mock?.password ? bcrypt.hashSync(mock.password, SALT_ROUNDS) : bcrypt.hashSync('password', SALT_ROUNDS),
     id: mock?.id || 'id',
     email: mock?.email || 'email@test.com',
-    depopulate(path: string) {
-      return this;
-    },
   };
 };
 
