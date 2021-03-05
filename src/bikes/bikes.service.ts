@@ -3,7 +3,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
 import { Bike } from './bike.model';
-import { BikeType } from './bike.type';
 import { BikeRequest } from './bikeRequest.dto';
 
 @Injectable()
@@ -20,12 +19,12 @@ export class BikesService {
     return result.id;
   }
   
-  async findAll(): Promise<Bike[]> {
-    return this.bikeModel.find().exec();
-  };
+  // async findAll(): Promise<Bike[]> {
+  //   return this.bikeModel.find().exec();
+  // };
 
-  async findAllByType(type:BikeType): Promise<Bike[]> {
-    return this.bikeModel.find({'type': type})
-  };
+  // async findAllByType(type:BikeType): Promise<Bike[]> {
+  //   return this.bikeModel.find({'type': type})
+  // };
 
 }
