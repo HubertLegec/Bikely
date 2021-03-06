@@ -18,7 +18,7 @@ export class BikesService {
     const result = await newBike.save();
     return result.id;
   }
-  
+
   // async findAll(): Promise<Bike[]> {
   //   return this.bikeModel.find().exec();
   // };
@@ -26,5 +26,4 @@ export class BikesService {
   // async findAllByType(type:BikeType): Promise<Bike[]> {
   //   return this.bikeModel.find({'type': type})
   // };
-
 }

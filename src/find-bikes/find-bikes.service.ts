@@ -7,13 +7,12 @@ import { BikeType } from 'src/bikes/bike.type';
 @Injectable()
 export class FindBikesService {
   constructor(@InjectModel('Bike') private readonly bikeModel: Model<Bike>) {}
-    
-    async findAll(): Promise<Bike[]> {
-        return this.bikeModel.find().exec();
-      };
-    
-    async findAllByType(type:BikeType): Promise<Bike[]> {
-      return this.bikeModel.find({'type': type})
-      };
 
+  async findAll(): Promise<Bike[]> {
+    return this.bikeModel.find().exec();
+  }
+
+  async findAllByType(type: BikeType): Promise<Bike[]> {
+    return this.bikeModel.find({ type: type });
+  }
 }
