@@ -9,8 +9,6 @@ export class JWTResponse {
 
 export class LoginDTO {
   @IsEmail()
-  @IsString()
-  @MinLength(6)
   @ApiProperty({ type: String, description: 'email' })
   email: string;
 
@@ -27,8 +25,6 @@ export class LoginDTO {
 
 export class RegisterDTO {
   @IsEmail()
-  @IsString()
-  @MinLength(6)
   @ApiProperty({ type: String, description: 'email' })
   email: string;
 
@@ -49,8 +45,6 @@ export interface AuthenticateDTO {
 
 export class GoogleDTO {
   @IsEmail()
-  @IsString()
-  @MinLength(6)
   @ApiProperty({ type: String, description: 'email' })
   email: string;
 
