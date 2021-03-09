@@ -2,7 +2,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsString, Length, MinLength } from 'class-validator';
 
 export class JWTResponse {
-  @IsString()
   @ApiProperty({ type: String, description: 'JWT' })
   access_token: string;
 }

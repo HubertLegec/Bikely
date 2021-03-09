@@ -3,6 +3,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { LoginDTO, RegisterDTO } from './auth.dto';
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { mockUserDoc } from '../utils/test-utils';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -27,30 +28,26 @@ describe('AuthController', () => {
     controller = module.get<AuthController>(AuthController);
   });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
-
-  describe('login', () => {
+  describe('POST /auth/login', () => {
     it('Returns jwt token', () => {
       jest.spyOn(service, 'login').mockResolvedValueOnce(objectWithAccessToken);
       expect(controller.login(loginData)).resolves.toEqual(objectWithAccessToken);
     });
 
     it('Returns an error', () => {
-      jest.spyOn(service, 'register').mockRejectedValueOnce(new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED));
-      expect(controller.register(registerData)).rejects.toThrowError(HttpException);
+      jest.spyOn(service, 'login').mockRejectedValueOnce(new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED));
+      expect(controller.login(loginData)).rejects.toThrowError(HttpException);
     });
   });
 
   describe('register', () => {
-    it('Returns id of created user', () => {
-      jest.spyOn(service, 'register').mockResolvedValueOnce('id');
-      expect(controller.register(registerData)).resolves.toEqual('id');
+    it('Returns returns user data after registration', () => {
+      jest.spyOn(service, 'register').mockResolvedValueOnce(mockUserDoc(registerData));
+      expect(controller.register(registerData)).resolves.toMatchObject(mockUserDoc(registerData).toObject());
     });
 
-    it('Returns an error', () => {
-      jest.spyOn(service, 'register').mockRejectedValueOnce(new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED));
+    it('Returns an error if user already exists', () => {
+      jest.spyOn(service, 'register').mockRejectedValueOnce(new HttpException('Unauthorized', HttpStatus.BAD_REQUEST));
       expect(controller.register(registerData)).rejects.toThrowError(HttpException);
     });
   });

@@ -40,10 +40,6 @@ describe('AuthService', () => {
     userService = module.get<UsersService>(UsersService);
   });
 
-  it('should be defined', () => {
-    expect(authService).toBeDefined();
-  });
-
   describe('validateUser', () => {
     it('Returns user', () => {
       const { id, username, ...inputData } = mockUser();
@@ -98,9 +94,13 @@ describe('AuthService', () => {
     });
   });
   describe('register', () => {
-    it('Returns user id after successfully creating user', () => {
-      jest.spyOn(userService, 'create').mockResolvedValueOnce('some id');
-      expect(authService.register(mockUser())).resolves.toBe('some id');
+    it('Returns user after successfully creating user', () => {
+      const createdUser = mockUserDoc();
+      delete createdUser.password;
+      const expectedUser = mockUserDoc();
+      delete expectedUser.password;
+      jest.spyOn(userService, 'create').mockResolvedValueOnce(createdUser as User);
+      expect(authService.register(mockUser())).resolves.toMatchObject(expectedUser);
     });
   });
 });
@@ -129,13 +129,3 @@ const mockUserDoc = (mock?: Partial<User>): Partial<User> => {
     email: mock?.email || 'email@test.com',
   };
 };
-
-const newUser = mockUser('test4', 'password4', 'id4', 'email4@test.com');
-
-const usersList = [
-  mockUser(),
-  mockUser('test2', 'password2', 'id2', 'email2@test.com'),
-  mockUser('test3', 'password3', 'id3', 'email3@test.com'),
-];
-
-const usersDocList = [mockUserDoc(), mockUserDoc(usersList[1]), mockUserDoc(usersList[2])];

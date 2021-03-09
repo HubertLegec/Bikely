@@ -1,19 +1,42 @@
 import { PassportStrategy } from '@nestjs/passport';
 import { GoogleDTO, LoginDTO } from '../auth/auth.dto';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
+import { Strategy } from 'passport-local';
+import { AuthService } from '../auth/auth.service';
+import { JwtModule } from '@nestjs/jwt';
+
+const SECRET = 'test-secret';
 
 @Injectable()
 export class MockJWTStrategy extends PassportStrategy(JwtStrategy, 'jwt') {
   constructor() {
-    const secret = 'test-secret';
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: secret,
+      secretOrKey: SECRET,
     });
   }
 
   validate(payload: LoginDTO | GoogleDTO, done: (error, success) => void) {
     done(null, payload);
+  }
+}
+
+export const MockJwtModule = JwtModule.register({ secret: SECRET });
+
+@Injectable()
+export class MockLocalStrategy extends PassportStrategy(Strategy) {
+  constructor(private authService: AuthService) {
+    super({
+      usernameField: 'email',
+      passwordField: 'password',
+    });
+  }
+
+  async validate(email: string, password: string): Promise<any> {
+    const result = await this.authService.validateUser({ email, password });
+
+    if (result instanceof HttpException) throw result;
+    else return result;
   }
 }

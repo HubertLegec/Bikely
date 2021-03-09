@@ -3,6 +3,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RegisterDTO } from '../auth/auth.dto';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
+import { User } from '../types/user';
+import { mockUserDoc } from '../utils/test-utils';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -22,15 +24,15 @@ describe('UsersController', () => {
             create: jest.fn().mockImplementation(async (userDTO: RegisterDTO) => {
               if (usersList.find((user) => user.email === userDTO.email)) {
                 throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
-              } else return 'id';
+              } else return mockUserDoc(userDTO);
             }),
             findByEmail: jest.fn().mockImplementation(async (email: string) => {
               const user = usersList.find((user) => user.email === email);
-              return user;
+              return user ? mockUserDoc(user) : null;
             }),
             deleteUser: jest.fn().mockImplementation(async (id: string) => {
               const user = usersList.find((user) => user.id === id);
-              return user;
+              return user ? mockUserDoc(user) : null;
             }),
             updateUserData: jest.fn(),
           },
@@ -42,13 +44,11 @@ describe('UsersController', () => {
     service = module.get<UsersService>(UsersService);
   });
 
-  it('Should be defined', () => {
-    expect(controller).toBeDefined();
-  });
-
-  describe(`GetUserData`, () => {
+  describe(`GET /users/me`, () => {
     it('Should return user', () => {
-      expect(controller.getUserData({ user: usersList[0] })).resolves.toEqual(usersList[0]);
+      expect(controller.getUserData({ user: usersList[0] })).resolves.toMatchObject(
+        mockUserDoc(usersList[0]).toObject(),
+      );
     });
 
     it('Should throw not found exception', () => {
@@ -56,9 +56,9 @@ describe('UsersController', () => {
     });
   });
 
-  describe('createUser', () => {
-    it('Should return user id', () => {
-      expect(controller.createUser(createdUser)).resolves.toEqual('id');
+  describe('POST /users/', () => {
+    it('Should return user', () => {
+      expect(controller.createUser(createdUser)).resolves.toMatchObject(mockUserDoc(createdUser).toObject());
     });
 
     it('Should throw error: user already exists', () => {
@@ -66,9 +66,10 @@ describe('UsersController', () => {
     });
   });
 
-  describe('deleteUser', () => {
-    it('Should return deleted user', () => {
-      expect(controller.deleteUser(usersList[0].id)).resolves.toEqual(usersList[0]);
+  describe('DELETE /users/:id', () => {
+    it('Should return deleted user', async () => {
+      const deletedUser = await controller.deleteUser(usersList[0].id);
+      expect(deletedUser.toObject()).toMatchObject(mockUserDoc(usersList[0]).toObject());
     });
 
     it('Should throw NotFoundException', () => {
@@ -76,10 +77,10 @@ describe('UsersController', () => {
     });
   });
 
-  describe('update', () => {
+  describe('PUT /users', () => {
     it('Should return updated user', () => {
-      jest.spyOn(service, 'updateUserData').mockResolvedValueOnce(usersList[0]);
-      expect(controller.updateUser(usersList[0])).resolves.toEqual(usersList[0]);
+      jest.spyOn(service, 'updateUserData').mockResolvedValueOnce(mockUserDoc() as User);
+      expect(controller.updateUser(usersList[0])).resolves.toMatchObject(mockUserDoc().toObject());
     });
 
     it('Should throw not found exception', () => {
@@ -106,21 +107,18 @@ const usersList = [
     username: 'testName',
     email: 'test@email.com',
     id: '12345678',
-    created: 1614115718641,
     password: '11111111',
   },
   {
     username: 'testName2',
     email: 'test2@email.com',
     id: '1234',
-    created: 1614115718641,
     password: '11111111',
   },
   {
     username: 'testName3',
     email: 'test3@email.com',
     id: '5678',
-    created: 1614115718641,
     password: '11111111',
   },
 ];

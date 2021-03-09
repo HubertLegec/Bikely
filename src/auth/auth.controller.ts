@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, UseGuards, ValidationPipe, HttpException, HttpStatus } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UseGuards, HttpException, HttpStatus, Res, HttpCode } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -6,6 +6,7 @@ import {
   ApiOkResponse,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { userTransformFunction } from '../types/user';
 import { UserDTO } from '../users/user.dto';
 import { GoogleDTO, JWTResponse, LoginDTO, RegisterDTO } from './auth.dto';
 import { AuthService } from './auth.service';
@@ -35,7 +36,8 @@ export class AuthController {
   @ApiNotFoundResponse({ description: 'User does not exist' })
   @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
   @ApiBody({ type: LoginDTO })
-  async login(@Body(ValidationPipe) body: LoginDTO) {
+  @HttpCode(HttpStatus.OK)
+  async login(@Body() body: LoginDTO) {
     return this.authService.login(body);
   }
 
@@ -43,9 +45,9 @@ export class AuthController {
   @ApiBody({ type: RegisterDTO })
   @ApiOkResponse({ description: 'User registered', type: UserDTO })
   @ApiBadRequestResponse({ description: 'User already exists' })
-  async register(@Body(ValidationPipe) body: RegisterDTO) {
+  async register(@Body() body: RegisterDTO) {
     const result = await this.authService.register(body);
-    if (result) return result;
+    if (result) return result.toObject({ transform: userTransformFunction });
     else throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
   }
 }

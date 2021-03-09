@@ -5,6 +5,7 @@ import { Model, Query } from 'mongoose';
 import { User } from 'src/types/user';
 import { HttpException, HttpStatus, NotFoundException } from '@nestjs/common';
 import { createMock } from '@golevelup/nestjs-testing';
+import { mockUserDoc } from '../utils/test-utils';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -39,10 +40,6 @@ describe('UsersService', () => {
     model = module.get<Model<User>>(getModelToken('User'));
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -70,7 +67,7 @@ describe('UsersService', () => {
         }),
       );
       jest.spyOn(model, 'create').mockReturnValueOnce(newUser as any);
-      expect(service.create(newUser)).resolves.toEqual(newUser.id);
+      expect(service.create(newUser)).resolves.toEqual(newUser);
     });
 
     it('Should return error from database', () => {
@@ -153,18 +150,6 @@ const mockUser = (username = 'username', password = 'password', id = 'id', email
     password,
     id,
     email,
-  };
-};
-
-const mockUserDoc = (mock?: Partial<User>): Partial<User> => {
-  return {
-    username: mock?.username || 'username',
-    password: mock?.password || 'password',
-    id: mock?.id || 'id',
-    email: mock?.email || 'email@test.com',
-    depopulate(path: string) {
-      return this;
-    },
   };
 };
 
