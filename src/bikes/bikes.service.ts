@@ -21,7 +21,8 @@ export class BikesService {
   }
 
   async getBike(bikeId: string) {
-    return await this.findBike(bikeId);
+    const bike = await this.findBike(bikeId);
+    return bike;
   }
 
   async updateBike(bikeId: string, bikeUpdate: BikeUpdate) {
@@ -29,7 +30,7 @@ export class BikesService {
     if (bikeUpdate.type) {
       bike.type = bikeUpdate.type;
     }
-    if (bikeUpdate.isElectric !== null) {
+    if (bikeUpdate.isElectric !== undefined) {
       bike.isElectric = bikeUpdate.isElectric;
     }
     if (bikeUpdate.frameSize) {
