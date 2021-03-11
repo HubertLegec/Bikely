@@ -1,43 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
-import { getModelToken } from '@nestjs/mongoose';
 import { Model, Query } from 'mongoose';
 import { User } from 'src/types/user';
 import { HttpException, HttpStatus, NotFoundException } from '@nestjs/common';
 import { createMock } from '@golevelup/nestjs-testing';
 import { mockUserDoc } from '../utils/test-utils';
+import { UserDTO } from './user.dto';
 
 describe('UsersService', () => {
   let service: UsersService;
   let model: Model<User>;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        UsersService,
-        {
-          provide: getModelToken('User'),
-          useValue: {
-            new: jest.fn().mockResolvedValue(mockUserDoc()),
-            constructor: jest.fn().mockResolvedValue(mockUserDoc()),
-            find: jest.fn(),
-            findOne: jest.fn(),
-            update: jest.fn(),
-            create: jest.fn(),
-            remove: jest.fn(),
-            exec: jest.fn(),
-            findByIdAndDelete: jest.fn(),
-            findByIdAndUpdate: jest.fn(),
-            findById: jest.fn(async (id: string) => {
-              return usersDocList.find((user) => user.id === id);
-            }),
-          },
-        },
-      ],
-    }).compile();
-
-    service = module.get<UsersService>(UsersService);
-    model = module.get<Model<User>>(getModelToken('User'));
+    model = createMock<Model<User>>({});
+    service = new UsersService(model);
   });
 
   afterEach(() => {
@@ -48,12 +23,14 @@ describe('UsersService', () => {
     it('Should return an user', async () => {
       const inputId = 'id2';
       const userDocWithId = usersDocList.find((user) => (user.id = inputId));
+      jest.spyOn(model, 'findById').mockResolvedValueOnce(userDocWithId as User);
       const returnedUser = await service.findById(inputId);
       expect(returnedUser).toEqual(userDocWithId);
     });
 
     it('Should return undefined', async () => {
       const inputId = '432987532';
+      jest.spyOn(model, 'findById').mockResolvedValueOnce(undefined);
       const returnedUser = await service.findById(inputId);
       expect(returnedUser).toEqual(undefined);
     });
@@ -144,7 +121,7 @@ describe('UsersService', () => {
   });
 });
 
-const mockUser = (username = 'username', password = 'password', id = 'id', email = 'email@test.com') => {
+const mockUser = (username = 'username', password = 'password', id = 'id', email = 'email@test.com'): UserDTO => {
   return {
     username,
     password,

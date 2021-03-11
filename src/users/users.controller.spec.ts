@@ -1,47 +1,34 @@
 import { NotFoundException, HttpException, HttpStatus } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
 import { RegisterDTO } from '../auth/auth.dto';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { User } from '../types/user';
 import { mockUserDoc } from '../utils/test-utils';
-
+import { Model } from 'mongoose';
+import { createMock } from '@golevelup/nestjs-testing';
 describe('UsersController', () => {
   let controller: UsersController;
   let service: UsersService;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [UsersController],
-      providers: [
-        {
-          provide: UsersService,
-          useValue: {
-            findById: jest.fn().mockImplementation(async (id: string) => {
-              const user = usersList.find((user) => user.id === id);
-              return user;
-            }),
-            create: jest.fn().mockImplementation(async (userDTO: RegisterDTO) => {
-              if (usersList.find((user) => user.email === userDTO.email)) {
-                throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
-              } else return mockUserDoc(userDTO);
-            }),
-            findByEmail: jest.fn().mockImplementation(async (email: string) => {
-              const user = usersList.find((user) => user.email === email);
-              return user ? mockUserDoc(user) : null;
-            }),
-            deleteUser: jest.fn().mockImplementation(async (id: string) => {
-              const user = usersList.find((user) => user.id === id);
-              return user ? mockUserDoc(user) : null;
-            }),
-            updateUserData: jest.fn(),
-          },
-        },
-      ],
-    }).compile();
-
-    controller = module.get<UsersController>(UsersController);
-    service = module.get<UsersService>(UsersService);
+    service = new UsersService(createMock<Model<User>>({}));
+    controller = new UsersController(service);
+    service.findById = jest.fn().mockImplementation(async (id: string) => {
+      return findMockUserById(id);
+    });
+    service.create = jest.fn().mockImplementation(async (userDTO: RegisterDTO) => {
+      if (usersList.find((user) => user.email === userDTO.email)) {
+        throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
+      } else return mockUserDoc(userDTO);
+    });
+    service.findByEmail = jest.fn().mockImplementation(async (email: string) => {
+      const user = findMockUserEmail(email);
+      return user ? mockUserDoc(user) : null;
+    });
+    service.deleteUser = jest.fn().mockImplementation(async (id: string) => {
+      const user = findMockUserById(id);
+      return user ? mockUserDoc(user) : null;
+    });
   });
 
   describe(`GET /users/me`, () => {
@@ -122,3 +109,11 @@ const usersList = [
     password: '11111111',
   },
 ];
+
+function findMockUserById(id: string) {
+  return usersList.find((user) => user.id === id);
+}
+
+function findMockUserEmail(email: string) {
+  return usersList.find((user) => user.email === email);
+}

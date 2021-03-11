@@ -1,31 +1,22 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { LoginDTO, RegisterDTO } from './auth.dto';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { mockUserDoc } from '../utils/test-utils';
+import { UsersService } from '../users/users.service';
+import { JwtService } from '@nestjs/jwt';
+import { User } from '../types/user';
+import { Model } from 'mongoose';
+import { createMock } from '@golevelup/nestjs-testing';
 
 describe('AuthController', () => {
   let controller: AuthController;
   let service: AuthService;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [AuthController],
-      providers: [
-        {
-          provide: AuthService,
-          useValue: {
-            validateUser: jest.fn(),
-            login: jest.fn(),
-            register: jest.fn(),
-          },
-        },
-      ],
-    }).compile();
-
-    service = module.get<AuthService>(AuthService);
-    controller = module.get<AuthController>(AuthController);
+    const model = createMock<Model<User>>({});
+    service = new AuthService(new UsersService(model), new JwtService({}));
+    controller = new AuthController(service);
   });
 
   describe('POST /auth/login', () => {

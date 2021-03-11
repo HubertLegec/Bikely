@@ -1,4 +1,3 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { User } from 'src/types/user';
 import { UsersService } from '../users/users.service';
@@ -6,6 +5,8 @@ import { HttpException, BadRequestException, HttpStatus } from '@nestjs/common';
 import { GoogleDTO } from 'src/auth/auth.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { createMock } from '@golevelup/nestjs-testing';
+import { Model } from 'mongoose';
 
 const SALT_ROUNDS = 10;
 
@@ -15,29 +16,9 @@ describe('AuthService', () => {
   let jwtService: JwtService;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        AuthService,
-        {
-          provide: JwtService,
-          useValue: {
-            sign: jest.fn(),
-          },
-        },
-        {
-          provide: UsersService,
-          useValue: {
-            findById: jest.fn(),
-            create: jest.fn(),
-            findByEmail: jest.fn(),
-          },
-        },
-      ],
-    }).compile();
-
-    jwtService = module.get<JwtService>(JwtService);
-    authService = module.get<AuthService>(AuthService);
-    userService = module.get<UsersService>(UsersService);
+    jwtService = new JwtService({});
+    userService = new UsersService(createMock<Model<User>>({}));
+    authService = new AuthService(userService, jwtService);
   });
 
   describe('validateUser', () => {

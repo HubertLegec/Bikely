@@ -8,7 +8,7 @@ export interface User extends Document {
   created: Date;
 }
 
-export function userTransformFunction(document: User, representation, options) {
+export function userTransformFunction(document: User, representation) {
   delete representation.password;
   representation.id = representation._id;
   delete representation._id;

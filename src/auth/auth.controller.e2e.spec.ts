@@ -1,7 +1,6 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import * as request from 'supertest';
 import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
-
 import { testModuleWithInMemoryDb } from '../utils/test-utils';
 import { UsersModule } from '../users/users.module';
 import { MockJwtModule, MockJWTStrategy } from '../utils/mock-auth';
