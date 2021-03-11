@@ -24,7 +24,7 @@ export class BikesController {
   }
 
   @Delete(':id')
-  async deleteBike(@Param('id') bikeId: string){
+  async deleteBike(@Param('id') bikeId: string) {
     await this.bikesService.deleteBike(bikeId);
   }
 }
