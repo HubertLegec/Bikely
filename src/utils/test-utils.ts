@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { sign } from 'jsonwebtoken';
-import { GoogleDTO, LoginDTO } from 'src/auth/auth.dto';
+import { GoogleDTO, LoginDTO } from '../auth/auth.dto';
 import { User } from '../types/user';
 
 export async function testModuleWithInMemoryDb(moduleMetadata: ModuleMetadata) {

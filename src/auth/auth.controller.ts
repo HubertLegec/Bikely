@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, UseGuards, HttpException, HttpStatus, Res, HttpCode } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UseGuards, HttpException, HttpStatus, HttpCode } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -6,7 +6,7 @@ import {
   ApiOkResponse,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { RolesEnum } from 'src/types/roles';
+import { RolesEnum } from '../types/roles';
 import { userTransformFunction } from '../types/user';
 import { UserDTO } from '../users/user.dto';
 import { GoogleDTO, JWTResponse, LoginDTO, RegisterDTO } from './auth.dto';

@@ -30,7 +30,6 @@ export class UsersController {
   @Get('/me')
   @ApiOkResponse({ description: 'Get user profile', type: UserDTO })
   @ApiNotFoundResponse({ description: 'User does not exist' })
-  @Roles(RolesEnum.Admin, RolesEnum.User)
   async getUserData(@Req() req) {
     const user = await this.usersService.findByEmail(req.user.email);
     if (user) return user.toObject({ transform: userTransformFunction });
@@ -61,7 +60,7 @@ export class UsersController {
   @ApiOkResponse({ description: 'User updated', type: UserDTO })
   @ApiNotFoundResponse({ description: 'User not found' })
   @ApiBody({ type: UserDTO })
-  @Roles(RolesEnum.User, RolesEnum.Admin)
+  @Roles(RolesEnum.Admin)
   async updateUser(@Body() user: UserDTO) {
     const updatedUser = await this.usersService.updateUserData(user);
     if (updatedUser) return updatedUser.toObject({ transform: userTransformFunction });

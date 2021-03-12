@@ -1,8 +1,8 @@
 import { AuthService } from './auth.service';
-import { User } from 'src/types/user';
+import { User } from '../types/user';
 import { UsersService } from '../users/users.service';
 import { HttpException, BadRequestException, HttpStatus } from '@nestjs/common';
-import { GoogleDTO } from 'src/auth/auth.dto';
+import { GoogleDTO } from '../auth/auth.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { createMock } from '@golevelup/nestjs-testing';

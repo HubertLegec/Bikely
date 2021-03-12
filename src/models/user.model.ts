@@ -1,6 +1,6 @@
 import { HookNextFunction, Schema } from 'mongoose';
 import * as bcrypt from 'bcrypt';
-import { RolesEnum } from 'src/types/roles';
+import { RolesEnum } from '../types/roles';
 
 export const UserSchema = new Schema({
   username: { type: String, required: true },

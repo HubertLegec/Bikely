@@ -1,6 +1,6 @@
 import { UsersService } from './users.service';
 import { Model, Query } from 'mongoose';
-import { User } from 'src/types/user';
+import { User } from '../types/user';
 import { HttpException, HttpStatus, NotFoundException } from '@nestjs/common';
 import { createMock } from '@golevelup/nestjs-testing';
 import { mockUserDoc } from '../utils/test-utils';

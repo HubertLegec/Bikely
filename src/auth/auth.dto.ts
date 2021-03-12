@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsString, Length, MinLength } from 'class-validator';
-import { RolesEnum } from 'src/types/roles';
+import { RolesEnum } from '../types/roles';
 
 export class JWTResponse {
   @ApiProperty({ type: String, description: 'JWT' })
