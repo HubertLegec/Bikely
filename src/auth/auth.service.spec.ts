@@ -7,6 +7,7 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { createMock } from '@golevelup/nestjs-testing';
 import { Model } from 'mongoose';
+import { RolesEnum } from '../types/roles';
 
 const SALT_ROUNDS = 10;
 
@@ -100,6 +101,7 @@ const googleDto: GoogleDTO = {
   lastName: 'familyName',
   id: 'id',
   email: 'email@test.com',
+  role: RolesEnum.User,
 };
 
 const mockUserDoc = (mock?: Partial<User>): Partial<User> => {
