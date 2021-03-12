@@ -18,8 +18,11 @@ import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { UserDTO } from './user.dto';
 import { userTransformFunction } from '../types/user';
+import { Roles } from '../auth/roles.decorator';
+import { RolesEnum } from '../types/roles';
+import { RolesGuard } from '../auth/guards/roles.guard';
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -27,6 +30,7 @@ export class UsersController {
   @Get('/me')
   @ApiOkResponse({ description: 'Get user profile', type: UserDTO })
   @ApiNotFoundResponse({ description: 'User does not exist' })
+  @Roles(RolesEnum.Admin, RolesEnum.User)
   async getUserData(@Req() req) {
     const user = await this.usersService.findByEmail(req.user.email);
     if (user) return user.toObject({ transform: userTransformFunction });
@@ -36,15 +40,17 @@ export class UsersController {
   @Post()
   @ApiCreatedResponse({ description: 'Create user', type: UserDTO })
   @ApiBody({ type: RegisterDTO })
+  @Roles(RolesEnum.Admin)
   async createUser(@Body() body: RegisterDTO) {
     const newUser = await this.usersService.create(body);
-    if (!newUser) throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
+    if (!newUser) throw new HttpException(`User with email ${body.email} already exists`, HttpStatus.BAD_REQUEST);
     return newUser.toObject({ transform: userTransformFunction });
   }
 
   @Delete(':id')
   @ApiOkResponse({ description: 'User deleted', type: UserDTO })
   @ApiNotFoundResponse({ description: 'User does not exist' })
+  @Roles(RolesEnum.Admin)
   async deleteUser(@Param('id') id: string) {
     const deletedUser = await this.usersService.deleteUser(id);
     if (deletedUser) return deletedUser;
@@ -55,6 +61,7 @@ export class UsersController {
   @ApiOkResponse({ description: 'User updated', type: UserDTO })
   @ApiNotFoundResponse({ description: 'User not found' })
   @ApiBody({ type: UserDTO })
+  @Roles(RolesEnum.User, RolesEnum.Admin)
   async updateUser(@Body() user: UserDTO) {
     const updatedUser = await this.usersService.updateUserData(user);
     if (updatedUser) return updatedUser.toObject({ transform: userTransformFunction });

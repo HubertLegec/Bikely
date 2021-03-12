@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, HttpException, HttpStatus } from '@nes
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
-import { AuthenticateDTO, GoogleDTO, LoginDTO, RegisterDTO } from './auth.dto';
+import { AuthenticateDTO, GoogleDTO, JWTResponse, LoginDTO, RegisterDTO } from './auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -25,8 +25,13 @@ export class AuthService {
     return this.login(user);
   }
 
-  async login(user: LoginDTO | GoogleDTO): Promise<any> {
-    const payload = { email: user.email, sub: user.id };
+  async login(user: LoginDTO | GoogleDTO): Promise<JWTResponse> {
+    let userData;
+    if (!user.hasOwnProperty('role')) {
+      userData = await this.usersService.findByEmail(user.email);
+    } else userData = user;
+
+    const payload = { email: user.email, sub: user.id, role: userData.role };
     return { access_token: this.jwtService.sign(payload) };
   }
 

@@ -12,8 +12,7 @@ export class UsersService {
   async create(userData: RegisterDTO): Promise<null | User> {
     try {
       if (await this.findByEmail(userData.email)) return null;
-      const newUser = await this.userModel.create(userData);
-      if (newUser) return newUser;
+      return await this.userModel.create(userData);
     } catch (err) {
       return err;
     }

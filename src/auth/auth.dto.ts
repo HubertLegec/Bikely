@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsString, Length, MinLength } from 'class-validator';
+import { RolesEnum } from 'src/types/roles';
 
 export class JWTResponse {
   @ApiProperty({ type: String, description: 'JWT' })
@@ -59,4 +60,7 @@ export class GoogleDTO {
   @IsString()
   @ApiProperty({ type: String, description: 'Google user id' })
   id: string;
+
+  @IsString()
+  role: RolesEnum;
 }

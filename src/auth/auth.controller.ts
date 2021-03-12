@@ -6,6 +6,7 @@ import {
   ApiOkResponse,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { RolesEnum } from 'src/types/roles';
 import { userTransformFunction } from '../types/user';
 import { UserDTO } from '../users/user.dto';
 import { GoogleDTO, JWTResponse, LoginDTO, RegisterDTO } from './auth.dto';
@@ -27,6 +28,7 @@ export class AuthController {
   @UseGuards(GoogleGuard)
   @ApiOkResponse({ description: 'User Logged in', type: JWTResponse })
   async googleAuthRedirect(@Req() req) {
+    req.user.role = RolesEnum.User;
     return this.authService.googleLogin(req.user as GoogleDTO);
   }
 
