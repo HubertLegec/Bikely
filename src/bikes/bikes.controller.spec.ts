@@ -140,6 +140,7 @@ describe('BikesController', () => {
           expect(bike.type).toEqual(BikeType.city);
           expect(bike.isElectric).toEqual(false);
           expect(bike.frameSize).toEqual(15);
+          expect(bike.__v).toEqual(1);
           done();
         });
     });
