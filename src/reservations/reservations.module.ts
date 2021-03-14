@@ -8,5 +8,6 @@ import { RentSchema } from '../rent/rent.model';
   imports: [MongooseModule.forFeature([{ name: 'Rent', schema: RentSchema }])],
   providers: [ReservationsService],
   controllers: [ReservationsController],
+  exports: [ReservationsService],
 })
 export class ReservationsModule {}

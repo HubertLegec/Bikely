@@ -11,7 +11,7 @@ export class ReservationsService {
   constructor(@InjectModel('Rent') private readonly rentModel: Model<Rent>) {}
 
   async getAllReservations() {
-    const reservations = await this.rentModel.find().exec();
+    const reservations = await this.rentModel.find({ actualDateFrom: undefined }).exec();
     return reservations.map((reservation) => {
       return this.convertToResponse(reservation);
     });
@@ -19,18 +19,27 @@ export class ReservationsService {
 
   async getReservation(reservationId: string) {
     const reservation = await this.findReservation(reservationId);
+    if (reservation && reservation.actualDateFrom) {
+      throw new BadRequestException(`Bike has been already picked up.`);
+    }
     return this.convertToResponse(reservation);
   }
 
   async getReservationsByBikeId(bikeId: string) {
-    const reservations = await this.rentModel.find({ bike_id: bikeId }).exec();
+    const reservations = await this.rentModel.find({ bike_id: bikeId, actualDateFrom: undefined }).exec();
+    if (reservations.length === 0) {
+      throw new NotFoundException(`Could not find reservation for bike_id: ${bikeId}`);
+    }
     return reservations.map((reservation) => {
       return this.convertToResponse(reservation);
     });
   }
 
   async getReservationsByUserId(userId: string) {
-    const reservations = await this.rentModel.find({ user_id: userId }).exec();
+    const reservations = await this.rentModel.find({ user_id: userId, actualDateFrom: undefined }).exec();
+    if (reservations.length === 0) {
+      throw new NotFoundException(`Could not find reservation for user_id: ${userId}`);
+    }
     return reservations.map((reservation) => {
       return this.convertToResponse(reservation);
     });
@@ -38,7 +47,7 @@ export class ReservationsService {
 
   async deleteReservation(reservationId: string) {
     const reservation = await this.findReservation(reservationId);
-    if (reservation.actualDateFrom !== null) {
+    if (reservation && reservation.actualDateFrom) {
       throw new BadRequestException(`Bike has been already picked up.`);
     }
     const deleteResult = await this.rentModel.deleteOne({ _id: reservationId });
@@ -49,7 +58,7 @@ export class ReservationsService {
 
   async updateReservation(reservationId: string, reservationUpdate: ReservationUpdate) {
     const reservation = await this.findReservation(reservationId);
-    if (reservation.actualDateFrom !== null) {
+    if (reservation && reservation.actualDateFrom) {
       throw new BadRequestException(`Bike has been already picked up.`);
     }
     if (reservationUpdate.bike_id) {
