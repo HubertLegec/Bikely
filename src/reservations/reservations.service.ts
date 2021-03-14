@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Rent } from '../rent/rent.model';
 import { ReservationRequest } from './reservationRequest.dto';
+import { ReservationResponse } from './reservationResponse.dto';
 import { ReservationUpdate } from './reservationUpdate.dto';
 
 @Injectable()
@@ -10,19 +11,29 @@ export class ReservationsService {
   constructor(@InjectModel('Rent') private readonly rentModel: Model<Rent>) {}
 
   async getAllReservations() {
-    return await this.rentModel.find().exec();
+    const reservations = await this.rentModel.find().exec();
+    return reservations.map((reservation) => {
+      return this.convertToResponse(reservation);
+    });
   }
 
   async getReservation(reservationId: string) {
-    return await this.findReservation(reservationId);
+    const reservation = await this.findReservation(reservationId);
+    return this.convertToResponse(reservation);
   }
 
   async getReservationsByBikeId(bikeId: string) {
-    return await this.rentModel.find({ bike_id: bikeId }).exec();
+    const reservations = await this.rentModel.find({ bike_id: bikeId }).exec();
+    return reservations.map((reservation) => {
+      return this.convertToResponse(reservation);
+    });
   }
 
   async getReservationsByUserId(userId: string) {
-    return await this.rentModel.find({ user_id: userId }).exec();
+    const reservations = await this.rentModel.find({ user_id: userId }).exec();
+    return reservations.map((reservation) => {
+      return this.convertToResponse(reservation);
+    });
   }
 
   async deleteReservation(reservationId: string) {
@@ -80,5 +91,18 @@ export class ReservationsService {
       throw new NotFoundException(`Could not find reservation with id: ${reservationId}`);
     }
     return reservation;
+  }
+
+  convertToResponse(reservation: Rent): ReservationResponse {
+    const reservationResponse = {
+      id: reservation._id,
+      bike_id: reservation.bike_id,
+      user_id: reservation.user_id,
+      plannedDateFrom: reservation.plannedDateFrom,
+      plannedDateTo: reservation.plannedDateTo,
+      rentalPointFrom_id: reservation.rentalPointFrom_id,
+      rentalPointTo_id: reservation.rentalPointTo_id,
+    };
+    return reservationResponse;
   }
 }

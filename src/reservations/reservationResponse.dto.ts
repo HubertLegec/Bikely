@@ -1,9 +1,9 @@
-export class ReservationRequest {
-  readonly id: string;
-  readonly bike_id: string;
-  readonly user_id: string;
-  readonly plannedDateFrom: Date;
-  readonly plannedDateTo: Date;
-  readonly rentalPointFrom_id: string;
-  readonly rentalPointTo_id: string;
+export class ReservationResponse {
+  id: string;
+  bike_id: string;
+  user_id: string;
+  plannedDateFrom: Date;
+  plannedDateTo: Date;
+  rentalPointFrom_id: string;
+  rentalPointTo_id: string;
 }
