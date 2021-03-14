@@ -9,5 +9,6 @@ import { BikesService } from './bikes.service';
   imports: [MongooseModule.forFeature([{ name: 'Bike', schema: BikeSchema }])],
   controllers: [BikesController],
   providers: [BikesService],
+  exports: [BikesService],
 })
 export class BikesModule {}
