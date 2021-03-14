@@ -10,12 +10,8 @@ export class UsersService {
   constructor(@InjectModel('User') private readonly userModel: Model<User>) {}
 
   async create(userData: RegisterDTO): Promise<null | User> {
-    try {
-      if (await this.findByEmail(userData.email)) return null;
-      return await this.userModel.create(userData);
-    } catch (err) {
-      return err;
-    }
+    if (await this.findByEmail(userData.email)) return null;
+    return await this.userModel.create(userData);
   }
 
   async findById(id: string): Promise<User> {

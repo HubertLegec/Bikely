@@ -1,11 +1,16 @@
-import { Body, Controller, Get, Post, Req, UseGuards, HttpException, HttpStatus, HttpCode } from '@nestjs/common';
 import {
-  ApiBadRequestResponse,
-  ApiBody,
-  ApiNotFoundResponse,
-  ApiOkResponse,
-  ApiUnauthorizedResponse,
-} from '@nestjs/swagger';
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  UseGuards,
+  HttpException,
+  HttpStatus,
+  HttpCode,
+  BadRequestException,
+} from '@nestjs/common';
+import { ApiBadRequestResponse, ApiBody, ApiOkResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { RolesEnum } from '../types/roles';
 import { userTransformFunction } from '../types/user';
 import { UserDTO } from '../users/user.dto';
@@ -29,13 +34,14 @@ export class AuthController {
   @ApiOkResponse({ description: 'User Logged in', type: JWTResponse })
   async googleAuthRedirect(@Req() req) {
     req.user.role = RolesEnum.User;
-    return this.authService.googleLogin(req.user as GoogleDTO);
+    const result = this.authService.googleLogin(req.user as GoogleDTO);
+    if (result) return result;
+    throw new BadRequestException();
   }
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
   @ApiOkResponse({ description: 'User logged in', type: JWTResponse })
-  @ApiNotFoundResponse({ description: 'User does not exist' })
   @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
   @ApiBody({ type: LoginDTO })
   @HttpCode(HttpStatus.OK)

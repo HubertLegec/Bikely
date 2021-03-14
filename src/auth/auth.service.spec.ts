@@ -1,7 +1,6 @@
 import { AuthService } from './auth.service';
 import { User } from '../types/user';
 import { UsersService } from '../users/users.service';
-import { HttpException, BadRequestException, HttpStatus } from '@nestjs/common';
 import { GoogleDTO } from '../auth/auth.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
@@ -24,30 +23,27 @@ describe('AuthService', () => {
 
   describe('validateUser', () => {
     it('Returns user', () => {
-      const { id, username, ...inputData } = mockUser();
+      const { email, password, ...rest } = mockUser();
       const foundUser = mockUserDoc({ password: 'password' });
-      const { password, ...result } = mockUserDoc();
+      const expectedUser = mockUserDoc();
+      delete expectedUser.password;
       jest.spyOn(userService, 'findByEmail').mockResolvedValueOnce(foundUser as any);
-      expect(authService.validateUser(inputData)).resolves.toMatchObject(result);
+      expect(authService.validateUser(email, password)).resolves.toMatchObject(expectedUser);
     });
 
-    it('returns unauthorized', () => {
-      const { id, username, ...inputData } = mockUser();
+    it('Returns null if credentials are invalid', () => {
+      const { email, password, ...rest } = mockUser();
       const foundUser = mockUserDoc({ password: 'differentPassword' });
 
       jest.spyOn(userService, 'findByEmail').mockResolvedValueOnce(foundUser as any);
-      expect(authService.validateUser(inputData)).resolves.toMatchObject(
-        new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED),
-      );
+      expect(authService.validateUser(email, password)).resolves.toBe(null);
     });
 
-    it('Throws not found', () => {
-      const { id, username, ...inputData } = mockUser();
+    it('Returns null if user does not exists', () => {
+      const { email, password, ...rest } = mockUser();
 
       jest.spyOn(userService, 'findByEmail').mockResolvedValueOnce(undefined);
-      expect(authService.validateUser(inputData)).resolves.toMatchObject(
-        new HttpException('User does not exist', HttpStatus.NOT_FOUND),
-      );
+      expect(authService.validateUser(email, password)).resolves.toBe(null);
     });
   });
   describe('login', () => {
@@ -71,8 +67,8 @@ describe('AuthService', () => {
       expect(authService.googleLogin(googleDto)).resolves.toMatchObject(jwtToken);
     });
 
-    it('Throws bad request exception', () => {
-      expect(() => authService.googleLogin(null)).rejects.toThrow(BadRequestException);
+    it('Return null if user data is empty', () => {
+      expect(authService.googleLogin(null)).resolves.toBe(null);
     });
   });
   describe('register', () => {

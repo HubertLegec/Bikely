@@ -38,10 +38,6 @@ export class RegisterDTO {
   @ApiProperty({ type: String, description: 'username' })
   username: string;
 }
-export interface AuthenticateDTO {
-  email: string;
-  password: string;
-}
 
 export class GoogleDTO {
   @IsEmail()

@@ -1,7 +1,6 @@
 import { UsersService } from './users.service';
 import { Model, Query } from 'mongoose';
 import { User } from '../types/user';
-import { HttpException, HttpStatus, NotFoundException } from '@nestjs/common';
 import { createMock } from '@golevelup/nestjs-testing';
 import { mockUserDoc } from '../utils/test-utils';
 import { UserDTO } from './user.dto';
@@ -47,17 +46,6 @@ describe('UsersService', () => {
       expect(service.create(newUser)).resolves.toEqual(newUser);
     });
 
-    it('Should return error from database', () => {
-      jest.spyOn(model, 'findOne').mockReturnValueOnce(
-        createMock<Query<User, User>>({
-          exec: jest.fn().mockRejectedValueOnce(new HttpException('database error', HttpStatus.INTERNAL_SERVER_ERROR)),
-        }),
-      );
-      expect(service.create(usersList[0])).resolves.toThrow(
-        new HttpException('database error', HttpStatus.INTERNAL_SERVER_ERROR),
-      );
-    });
-
     it('Should return null if user already exists', () => {
       jest.spyOn(service, 'findByEmail').mockResolvedValueOnce(mockUserDoc() as any);
       expect(service.create(mockUser())).resolves.toEqual(null);
@@ -74,13 +62,13 @@ describe('UsersService', () => {
       expect(service.findByEmail('email@test.com')).resolves.toEqual(usersDocList[0]);
     });
 
-    it('Throws user not found', () => {
+    it('Returns null if user does not exists', () => {
       jest.spyOn(model, 'findOne').mockReturnValueOnce(
         createMock<Query<User, User>>({
-          exec: jest.fn().mockRejectedValueOnce(new NotFoundException()),
+          exec: jest.fn().mockResolvedValueOnce(null),
         }),
       );
-      expect(() => service.findByEmail('NotExistingEmail')).rejects.toThrow(new NotFoundException());
+      expect(service.findByEmail('NotExistingEmail')).resolves.toBe(null);
     });
   });
 
@@ -89,11 +77,6 @@ describe('UsersService', () => {
       jest.spyOn(model, 'findByIdAndUpdate').mockResolvedValueOnce(usersDocList[1] as any);
       expect(service.updateUserData(usersList[1])).resolves.toEqual(usersDocList[1]);
     });
-
-    it('Throws not found error', () => {
-      jest.spyOn(model, 'findByIdAndUpdate').mockRejectedValueOnce(new NotFoundException());
-      expect(() => service.updateUserData(mockUser())).rejects.toThrow(new NotFoundException());
-    });
   });
 
   describe('updatePassword', () => {
@@ -101,22 +84,12 @@ describe('UsersService', () => {
       jest.spyOn(model, 'findByIdAndUpdate').mockResolvedValueOnce(usersDocList[1] as any);
       expect(service.updatePassword('id', 'password')).resolves.toEqual(usersDocList[1]);
     });
-
-    it('Throws not found error', () => {
-      jest.spyOn(model, 'findByIdAndUpdate').mockRejectedValue(new NotFoundException());
-      expect(() => service.updatePassword('id', 'password')).rejects.toThrow(new NotFoundException());
-    });
   });
 
   describe('deleteUser', () => {
     it('Returns deleted user', () => {
       jest.spyOn(model, 'findByIdAndDelete').mockResolvedValueOnce(usersDocList[1] as any);
       expect(service.deleteUser('id')).resolves.toEqual(usersDocList[1]);
-    });
-
-    it('Throws not found error', () => {
-      jest.spyOn(model, 'findByIdAndDelete').mockRejectedValue(new NotFoundException());
-      expect(() => service.deleteUser('id')).rejects.toThrow(new NotFoundException());
     });
   });
 });

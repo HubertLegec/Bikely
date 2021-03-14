@@ -134,13 +134,13 @@ describe('AuthController', () => {
       });
     });
 
-    it(`Should return NOT_FOUND if user does not exists`, (done) => {
+    it(`Should return UNAUTHORIZED if user does not exists`, (done) => {
       request(app.getHttpServer())
         .post('/auth/login')
         .send(userThatDoesNotExist)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
-        .expect(HttpStatus.NOT_FOUND, done);
+        .expect(HttpStatus.UNAUTHORIZED, done);
     });
   });
 
