@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDate, IsMongoId } from 'class-validator';
+import { IsISO8601, IsMongoId } from 'class-validator';
 
 export class ReservationRequest {
   @IsMongoId()
@@ -8,10 +8,10 @@ export class ReservationRequest {
   @IsMongoId()
   @ApiProperty()
   readonly user_id: string;
-  @IsDate()
+  @IsISO8601()
   @ApiProperty()
   readonly plannedDateFrom: Date;
-  @IsDate()
+  @IsISO8601()
   @ApiProperty()
   readonly plannedDateTo: Date;
   @IsMongoId()
