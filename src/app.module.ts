@@ -4,6 +4,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { BikesModule } from './bikes/bikes.module';
+import { ReservationsModule } from './reservations/reservations.module';
 
 @Module({
   imports: [
@@ -14,6 +15,8 @@ import { BikesModule } from './bikes/bikes.module';
     AuthModule,
     BikesModule,
     UsersModule,
+    MongooseModule.forRoot('mongodb+srv://test:test@cluster0.tnyju.mongodb.net/bikely?retryWrites=true&w=majority'),
+    ReservationsModule,
   ],
 })
 export class AppModule {}

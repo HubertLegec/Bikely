@@ -68,7 +68,7 @@ describe('BikesController', () => {
         .expect('Content-Type', /json/)
         .expect(HttpStatus.OK)
         .then((res) => {
-          assert(res.body.message, {
+          assert(res.body, {
             _id: createdBikeId,
             type: 'mtb',
             isElectric: false,
@@ -153,8 +153,8 @@ describe('BikesController', () => {
         .delete(`/admin/bikes/${idToDelete}`)
         .expect(HttpStatus.OK)
         .then(async () => {
-          const remainingAccounts = await bikeModel.find({}).exec();
-          expect(remainingAccounts).toHaveLength(0);
+          const remainingBikes = await bikeModel.find({}).exec();
+          expect(remainingBikes).toHaveLength(0);
           done();
         });
     });
