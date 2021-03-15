@@ -6,8 +6,6 @@ import { BikesModule } from './bikes.module';
 import { testModuleWithInMemoryDb } from '../utils/test-utils';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { assert } from 'console';
-<<<<<<< HEAD
-=======
 import { Model } from 'mongoose';
 import { Bike } from './bike.model';
 
@@ -31,16 +29,12 @@ const patchTypeAndFrameSizeRequest = {
   type: 'city',
   frameSize: 15,
 };
->>>>>>> main
 
 describe('BikesController', () => {
   let app: INestApplication;
   let mongoServer: MongoMemoryServer;
-<<<<<<< HEAD
-=======
   let bikeModel: Model<Bike>;
   let createdBikeId: string;
->>>>>>> main
 
   beforeAll(async () => {
     const moduleWithDb = await testModuleWithInMemoryDb({
@@ -50,18 +44,12 @@ describe('BikesController', () => {
     const module = moduleWithDb.module;
     mongoServer = moduleWithDb.mongoServer;
 
-<<<<<<< HEAD
-=======
     bikeModel = module.get('BikeModel');
->>>>>>> main
     app = module.createNestApplication();
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
   });
 
-<<<<<<< HEAD
-  describe(`POST addBike`, () => {
-=======
   beforeEach(async () => {
     const createdBike = await bikeModel.create(bikeRequestCorrect);
     createdBikeId = createdBike.id;
@@ -105,7 +93,6 @@ describe('BikesController', () => {
   });
 
   describe(`POST /admin/bikes/`, () => {
->>>>>>> main
     it(`Should return HttpStatus.CREATED`, (done) => {
       request(app.getHttpServer())
         .post('/admin/bikes')
@@ -138,8 +125,6 @@ describe('BikesController', () => {
     });
   });
 
-<<<<<<< HEAD
-=======
   describe('PATCH /admin/bikes/:id', () => {
     it('should return bike with applied patch', (done) => {
       const givenId = createdBikeId;
@@ -186,28 +171,8 @@ describe('BikesController', () => {
     });
   });
 
->>>>>>> main
   afterAll(async () => {
     await app.close();
     await mongoServer.stop();
   });
-<<<<<<< HEAD
-
-  const bikeRequestCorrect: BikeRequest = {
-    type: BikeType.mtb,
-    isElectric: false,
-    frameSize: 20,
-  };
-  const bikeRequestIncorrectType = {
-    type: 'test',
-    isElectric: true,
-    frameSize: 20,
-  };
-  const bikeRequestIncorrectFrameSize = {
-    type: BikeType.city,
-    isElectric: false,
-    frameSize: 2,
-  };
-=======
->>>>>>> main
 });
