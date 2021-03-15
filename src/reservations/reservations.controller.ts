@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, NotFoundException, Param, Patch, Post, Put } from '@nestjs/common';
 import { ReservationsService } from './reservations.service';
 import { ReservationRequest } from './reservationRequest.dto';
 import { ReservationUpdate } from './reservationUpdate.dto';
@@ -41,5 +41,19 @@ export class ReservationsController {
   @Delete(':id')
   async deleteReservation(@Param('id') reservationId: string) {
     await this.reservationService.deleteReservation(reservationId);
+  }
+
+  @Put('/rent/:id')
+  async rentBikeEvent(@Param('id') reservationId: string) {
+    const reservation = await this.reservationService.rentBike(reservationId);
+    if (!reservation) throw new NotFoundException('Reservation with given id does not exist');
+    return reservation.toObject();
+  }
+
+  @Put('/return/:id')
+  async returnBikeEvent(@Param('id') reservationId: string) {
+    const reservation = await this.reservationService.returnBike(reservationId);
+    if (!reservation) throw new NotFoundException('Reservation with given id does not exist');
+    return reservation.toObject();
   }
 }
