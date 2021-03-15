@@ -1,42 +1,65 @@
-import { HttpCode } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
+import * as request from 'supertest';
+import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
 import { BikeType } from './bike.type';
 import { BikeRequest } from './bikeRequest.dto';
-import { BikesController } from './bikes.controller';
 import { BikesModule } from './bikes.module';
-import { BikesService } from './bikes.service';
+import { testModuleWithInMemoryDb } from '../utils/test-utils';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { assert } from 'console';
 
 describe('BikesController', () => {
-  let bikesController: BikesController;
-  let bikesService: BikesService;
+  let app: INestApplication;
+  let mongoServer: MongoMemoryServer;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+  beforeAll(async () => {
+    const moduleWithDb = await testModuleWithInMemoryDb({
       imports: [BikesModule],
-      controllers: [BikesController],
-      providers: [BikesService],
-    }).compile();
+    });
 
-    bikesService = module.get<BikesService>(BikesService);
-    bikesController = module.get<BikesController>(BikesController);
+    const module = moduleWithDb.module;
+    mongoServer = moduleWithDb.mongoServer;
+
+    app = module.createNestApplication();
+    app.useGlobalPipes(new ValidationPipe());
+    await app.init();
   });
 
-  describe('addBike', () => {
-    it('Should return bike id', () => {
-      const result = Promise.resolve('testId');
-      jest.spyOn(bikesService, 'create').mockImplementation(() => result);
+  describe(`POST addBike`, () => {
+    it(`Should return HttpStatus.CREATED`, (done) => {
+      request(app.getHttpServer())
+        .post('/admin/bikes')
+        .send(bikeRequestCorrect)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .expect(HttpStatus.CREATED, done);
+    });
 
-      expect(bikesController.addBike(bikeRequestCorrect)).resolves.toEqual({ id: 'testId' });
+    it(`Should return HttpStatus.BAD_REQUEST`, (done) => {
+      request(app.getHttpServer())
+        .post('/admin/bikes')
+        .send(bikeRequestIncorrectType)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .expect(HttpStatus.BAD_REQUEST, done);
+    });
+
+    it(`Should return HttpStatus.BAD_REQUEST`, (done) => {
+      request(app.getHttpServer())
+        .post('/admin/bikes')
+        .send(bikeRequestIncorrectFrameSize)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .expect(HttpStatus.BAD_REQUEST)
+        .then((res) => {
+          assert(res.body.message, ['frameSize must not be less than 15']);
+          done();
+        });
     });
   });
 
-  describe('addBike', () => {
-    it('should return http code 400', () => {
-      const result = Promise.resolve('testId');
-      jest.spyOn(bikesService, 'create').mockImplementation(() => result);
-
-      expect(bikesController.addBike(bikeRequestTooSmallFrameSize)).resolves.toEqual(HttpCode(400));
-    });
+  afterAll(async () => {
+    await app.close();
+    await mongoServer.stop();
   });
 
   const bikeRequestCorrect: BikeRequest = {
@@ -44,8 +67,12 @@ describe('BikesController', () => {
     isElectric: false,
     frameSize: 20,
   };
-
-  const bikeRequestTooSmallFrameSize = {
+  const bikeRequestIncorrectType = {
+    type: 'test',
+    isElectric: true,
+    frameSize: 20,
+  };
+  const bikeRequestIncorrectFrameSize = {
     type: BikeType.city,
     isElectric: false,
     frameSize: 2,
