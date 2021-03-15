@@ -6,12 +6,14 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ReservationsModule } from './reservations/reservations.module';
+import { RentalPointModule } from './rental-points/rental-point.module';
 
 
 @Module({
   imports: [
     BikesModule,
-    MongooseModule.forRoot('mongodb+srv://test:test@cluster0.tnyju.mongodb.net/bikely?retryWrites=true&w=majority'),
+    RentalPointModule,
+    // MongooseModule.forRoot('mongodb+srv://test:test@cluster0.tnyju.mongodb.net/bikely?retryWrites=true&w=majority'),
     FindBikesModule,
     ConfigModule.forRoot(),
     MongooseModule.forRoot(
