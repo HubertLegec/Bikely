@@ -15,7 +15,6 @@ import { ReservationsModule } from './reservations/reservations.module';
     AuthModule,
     BikesModule,
     UsersModule,
-    MongooseModule.forRoot('mongodb+srv://test:test@cluster0.tnyju.mongodb.net/bikely?retryWrites=true&w=majority'),
     ReservationsModule,
   ],
 })
