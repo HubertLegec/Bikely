@@ -102,6 +102,24 @@ export class ReservationsService {
     return reservation;
   }
 
+  async rentBike(reservationId: string): Promise<Rent | null> {
+    const reservation = await this.findReservation(reservationId);
+    if (reservation) {
+      reservation.actualDateFrom = new Date();
+      await reservation.save();
+      return reservation;
+    } else return null;
+  }
+
+  async returnBike(reservationId: string): Promise<Rent | null> {
+    const reservation = await this.findReservation(reservationId);
+    if (reservation) {
+      reservation.actualDateTo = new Date();
+      await reservation.save();
+      return reservation;
+    } else return null;
+  }
+
   convertToResponse(reservation: Rent): ReservationResponse {
     const reservationResponse = {
       id: reservation._id,

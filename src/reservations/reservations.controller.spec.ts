@@ -2,7 +2,7 @@ import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { Model } from 'mongoose';
-import { Rent } from 'src/rent/rent.model';
+import { Rent } from '../rent/rent.model';
 import { testModuleWithInMemoryDb } from '../utils/test-utils';
 import { ReservationsModule } from './reservations.module';
 import { assert } from 'console';
@@ -272,6 +272,46 @@ describe('ReservationsController', () => {
           assert(res.body.message, [`Bike has been already picked up.`]);
           done();
         });
+    });
+  });
+
+  describe('PUT /reservation/rent/:id', () => {
+    it('Should update reservation', (done) => {
+      request(app.getHttpServer())
+        .put(`/reservations/rent/${createdReservationId}`)
+        .set('Accept', 'application/json')
+        .expect(HttpStatus.OK)
+        .then((response) => {
+          expect(response.body.actualDateFrom).toBeTruthy();
+          done();
+        });
+    });
+
+    it('Should return NOT_Found if reservation does not exists', (done) => {
+      request(app.getHttpServer())
+        .put(`/reservations/rent/notExistingId123456789`)
+        .set('Accept', 'application/json')
+        .expect(HttpStatus.NOT_FOUND, done);
+    });
+  });
+
+  describe('PUT /reservation/return/:id', () => {
+    it('Should update reservation', (done) => {
+      request(app.getHttpServer())
+        .put(`/reservations/return/${createdReservationId}`)
+        .set('Accept', 'application/json')
+        .expect(HttpStatus.OK)
+        .then((response) => {
+          expect(response.body.actualDateTo).toBeTruthy();
+          done();
+        });
+    });
+
+    it('Should return NOT_Found if reservation does not exists', (done) => {
+      request(app.getHttpServer())
+        .put(`/reservations/return/notExistingId123456789`)
+        .set('Accept', 'application/json')
+        .expect(HttpStatus.NOT_FOUND, done);
     });
   });
 });
