@@ -6,6 +6,8 @@ import { Rent } from '../rent/rent.model';
 import { testModuleWithInMemoryDb } from '../utils/test-utils';
 import { ReservationsModule } from './reservations.module';
 import { assert } from 'console';
+import { RentalPointModule } from '../rental-points/rental-point.module';
+import { RentalPoint } from '../rental-points/rental-point.model';
 
 const reservationRequestCorrect = {
   bike_id: '604bf99597d75d9420ec2e5d',
@@ -40,22 +42,35 @@ const patchRentalPointFromRequest = {
   rentalPointFrom_id: '604bf99597d75d9420ec2e5a',
 };
 
+const rentalPointMockData = {
+  location: 'some location',
+  bicycle_id: ['604bf99597d75d9420ec2e5d', '604bf99597d75d9420ec2e5a'],
+};
+
+let rentalPointMock: RentalPoint;
+
 describe('ReservationsController', () => {
   let app: INestApplication;
   let mongoServer: MongoMemoryServer;
   let rentModel: Model<Rent>;
   let createdReservationId: string;
   let createdRentId: string;
+  let rentalPointModel: Model<RentalPoint>;
 
   beforeAll(async () => {
     const moduleWithDb = await testModuleWithInMemoryDb({
-      imports: [ReservationsModule],
+      imports: [RentalPointModule, ReservationsModule],
     });
 
     const module = moduleWithDb.module;
     mongoServer = moduleWithDb.mongoServer;
 
     rentModel = module.get('RentModel');
+    rentalPointModel = module.get('RentalPointModel');
+    rentalPointMock = await rentalPointModel.create(rentalPointMockData);
+    reservationRequestCorrect.rentalPointTo_id = rentalPointMock._id;
+    reservationRequestCorrect.rentalPointFrom_id = rentalPointMock._id;
+    patchRentalPointFromRequest.rentalPointFrom_id = rentalPointMock._id;
     app = module.createNestApplication();
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
@@ -222,9 +237,8 @@ describe('ReservationsController', () => {
           expect(reservation.user_id).toEqual('604bf99597d75d9420ec2e5d');
           expect(reservation.plannedDateFrom).toEqual(givenDate);
           expect(reservation.plannedDateTo).toEqual(givenDate);
-          expect(reservation.rentalPointFrom_id).toEqual('604bf99597d75d9420ec2e5a');
-          expect(reservation.rentalPointTo_id).toEqual('604bf99597d75d9420ec2e5d');
-          expect(reservation.__v).toEqual(1);
+          expect(reservation.rentalPointFrom_id).toEqual(rentalPointMock._id.toString());
+          expect(reservation.rentalPointTo_id).toEqual(rentalPointMock._id.toString());
           done();
         });
     });
@@ -277,12 +291,15 @@ describe('ReservationsController', () => {
 
   describe('PUT /reservation/rent/:id', () => {
     it('Should update reservation', (done) => {
+      reservationRequestCorrect.rentalPointFrom_id = rentalPointMock.id;
       request(app.getHttpServer())
         .put(`/reservations/rent/${createdReservationId}`)
         .set('Accept', 'application/json')
         .expect(HttpStatus.OK)
-        .then((response) => {
+        .then(async (response) => {
           expect(response.body.actualDateFrom).toBeTruthy();
+          rentalPointMock = await rentalPointModel.findById(rentalPointMock.id);
+          expect(rentalPointMock.bicycle_id.length).toBe(1);
           done();
         });
     });
@@ -301,8 +318,10 @@ describe('ReservationsController', () => {
         .put(`/reservations/return/${createdReservationId}`)
         .set('Accept', 'application/json')
         .expect(HttpStatus.OK)
-        .then((response) => {
+        .then(async (response) => {
           expect(response.body.actualDateTo).toBeTruthy();
+          rentalPointMock = await rentalPointModel.findById(rentalPointMock.id);
+          expect(rentalPointMock.bicycle_id.length).toBe(2);
           done();
         });
     });
