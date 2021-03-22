@@ -19,19 +19,16 @@ let registeredMockUser;
 
 const usersWithIncorrectLoginData: Array<LoginDTO> = [
   {
-    id: 'notValidId',
     email: 'test@test.com',
     password: 'password',
   },
   {
-    id: 'someRandomId1234567890',
     email: 'test@test.com',
     password: 'notVali',
   },
 ];
 
 const userThatDoesNotExist: LoginDTO = {
-  id: 'someRandomId1234567890',
   email: 'NotValidEmail',
   password: 'password',
 };
