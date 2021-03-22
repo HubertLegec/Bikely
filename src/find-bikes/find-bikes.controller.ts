@@ -8,7 +8,7 @@ export class FindBikesController {
 
   @Get()
   async findAll() {
-    return await this.findBikesService.findAll();
+    return await this.findBikesService.getAllWithLocation();
   }
 
   @Get('/:type')
