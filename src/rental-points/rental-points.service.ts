@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-
 import { RentalPoint } from './rental-point.model';
 import { RentalPointRequest } from './rentalPointRequest.dto';
 
@@ -31,6 +30,15 @@ export class RentalPointService {
     rentalPoint.bicycle_id.push(bike_id);
     rentalPoint.save();
     return rentalPoint;
+  }
+
+  async removeBikeFromRentalPoint(bikeId: string, rentalPointId: string): Promise<RentalPoint | null> {
+    const rentalPoint = await this.rentalPointModel.findById(rentalPointId);
+    if (rentalPoint) {
+      rentalPoint.bicycle_id = rentalPoint.bicycle_id.filter((id) => id != bikeId);
+      await rentalPoint.save();
+      return rentalPoint;
+    } else return null;
   }
 
   async deleteRentalPoint(rentalPoint_id: string) {
