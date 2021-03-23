@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { RentalPointService } from '../rental-points/rental-points.service';
 import { Rent } from '../rent/rent.model';
 import { ReservationRequest } from './reservationRequest.dto';
 import { ReservationResponse } from './reservationResponse.dto';
@@ -8,7 +9,10 @@ import { ReservationUpdate } from './reservationUpdate.dto';
 
 @Injectable()
 export class ReservationsService {
-  constructor(@InjectModel('Rent') private readonly rentModel: Model<Rent>) {}
+  constructor(
+    @InjectModel('Rent') private readonly rentModel: Model<Rent>,
+    private readonly rentalPointService: RentalPointService,
+  ) {}
 
   async getAllReservations() {
     const reservations = await this.rentModel.find({ actualDateFrom: undefined }).exec();
@@ -100,6 +104,26 @@ export class ReservationsService {
       throw new NotFoundException(`Could not find reservation with id: ${reservationId}`);
     }
     return reservation;
+  }
+
+  async rentBike(reservationId: string): Promise<Rent | null> {
+    const reservation = await this.findReservation(reservationId);
+    if (reservation) {
+      this.rentalPointService.removeBikeFromRentalPoint(reservation.bike_id, reservation.rentalPointFrom_id);
+      reservation.actualDateFrom = new Date();
+      await reservation.save();
+      return reservation;
+    } else return null;
+  }
+
+  async returnBike(reservationId: string): Promise<Rent | null> {
+    const reservation = await this.findReservation(reservationId);
+    if (reservation) {
+      this.rentalPointService.addBikeToRentalPoint(reservation.bike_id, reservation.rentalPointFrom_id);
+      reservation.actualDateTo = new Date();
+      await reservation.save();
+      return reservation;
+    } else return null;
   }
 
   convertToResponse(reservation: Rent): ReservationResponse {
