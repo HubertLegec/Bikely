@@ -16,11 +16,6 @@ export class LoginDTO {
   @MinLength(8)
   @ApiProperty({ type: String, description: 'password' })
   password: string;
-
-  @Length(24)
-  @IsString()
-  @ApiProperty({ type: String, description: 'User id' })
-  id: string;
 }
 
 export class RegisterDTO {

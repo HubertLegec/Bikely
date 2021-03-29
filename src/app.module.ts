@@ -14,14 +14,12 @@ import { RentalPointModule } from './rental-points/rental-point.module';
     MongooseModule.forRoot(
       `mongodb+srv://${process.env.DATABASE_USER}:${process.env.DATABASE_PASSWORD}@${process.env.DATABASE_CLUSTER}.d5zkf.mongodb.net/${process.env.DATABASE_NAME}?retryWrites=true&w=majority`,
     ),
-    AuthModule,
     UsersModule,
+    AuthModule,
     ReservationsModule,
     BikesModule,
     RentalPointModule,
     FindBikesModule,
   ],
-  controllers: [],
-  providers: [],
 })
 export class AppModule {}

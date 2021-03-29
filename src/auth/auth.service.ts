@@ -30,7 +30,7 @@ export class AuthService {
       userData = await this.usersService.findByEmail(user.email);
     } else userData = user;
 
-    const payload = { email: user.email, sub: user.id, role: userData.role };
+    const payload = { email: userData.email, sub: userData.id, role: userData.role };
     return { access_token: this.jwtService.sign(payload) };
   }
 
