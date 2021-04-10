@@ -1,7 +1,10 @@
-import { Post, Controller, Body, Get, Param, Delete } from '@nestjs/common';
+import { Post, Controller, UseGuards, Body, Get, Param, Delete } from '@nestjs/common';
 import { addBikeToRentalPoint } from './addBikeToRentalPoint.dto';
 import { RentalPointService } from './rental-points.service';
 import { RentalPointRequest } from './rentalPointRequest.dto';
+import { RolesEnum } from '../types/roles';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 
 @Controller('/rentalpoints')
 export class RentalPointController {

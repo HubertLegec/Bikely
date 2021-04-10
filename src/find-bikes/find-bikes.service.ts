@@ -25,10 +25,11 @@ export class FindBikesService {
   async getAllWithLocation() {
     const rentalPoints = await this.rentalPointService.getAll();
     const bikes = await this.findAll();
-    // const reservations = await this.reservationService.getAllReservations();
+    const reservations = await this.reservationService.getAllReservations();
+    
     const response = [];
 
-    await rentalPoints.forEach(async (point) => {
+    rentalPoints.forEach(async (point) => {
       point.bicycle_id.forEach(async (id) => {
         const bike = bikes.find((bike) => bike._id == id.toString());
         const bikeResponse = {

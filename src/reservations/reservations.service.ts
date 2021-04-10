@@ -79,10 +79,10 @@ export class ReservationsService {
     reservation.save();
   }
 
-  async create(reservationRequest: ReservationRequest) {
+  async create(reservationRequest: ReservationRequest, userId) {
     const newReservation = new this.rentModel({
       bike_id: reservationRequest.bike_id,
-      user_id: reservationRequest.user_id,
+      user_id: userId,
       plannedDateFrom: reservationRequest.plannedDateFrom,
       plannedDateTo: reservationRequest.plannedDateTo,
       rentalPointFrom_id: reservationRequest.rentalPointFrom_id,

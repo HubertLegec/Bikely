@@ -1,15 +1,22 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards, Req } from '@nestjs/common';
 import { ReservationsService } from './reservations.service';
 import { ReservationRequest } from './reservationRequest.dto';
 import { ReservationUpdate } from './reservationUpdate.dto';
+import { RolesEnum } from '../types/roles';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 
 @Controller('/reservations')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class ReservationsController {
   constructor(private readonly reservationService: ReservationsService) {}
 
   @Post()
-  async createReservation(@Body() reservationRequest: ReservationRequest) {
-    const id = await this.reservationService.create(reservationRequest);
+  @Roles(RolesEnum.User)
+  async createReservation(@Req() request, @Body() reservationRequest: ReservationRequest) {
+    const userId = request.user.id;
+    const id = await this.reservationService.create(reservationRequest, userId);
     return { id: id };
   }
 
@@ -19,12 +26,15 @@ export class ReservationsController {
   }
 
   @Get()
+  @Roles(RolesEnum.Admin)
   async getAllReservations() {
     return await this.reservationService.getAllReservations();
   }
 
-  @Get('/users/:id')
-  async getReservationByUserId(@Param('id') userId: string) {
+  @Get('/users')
+  @Roles(RolesEnum.Admin, RolesEnum.User)
+  async getReservationByUserId(@Req() request) {
+    const userId = request.user.id;
     return await this.reservationService.getReservationsByUserId(userId);
   }
 
