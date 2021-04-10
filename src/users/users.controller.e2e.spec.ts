@@ -49,7 +49,6 @@ const loggedAdmin = {
 };
 
 const userThatDoesNotExist: LoginDTO = {
-  id: '1234567891234567899876',
   email: 'test@notExisting.com',
   password: 'somePassword',
 };

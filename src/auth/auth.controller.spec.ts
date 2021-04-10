@@ -46,7 +46,6 @@ describe('AuthController', () => {
 
 const loginData: LoginDTO = {
   email: 'test@test.com',
-  id: 'id',
   password: 'password',
 };
 
