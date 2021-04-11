@@ -48,7 +48,6 @@ export class ReservationsService {
   }
 
   async getReservationsByUserId(userId: string) {
-
     const reservations = await this.rentModel.find({ user_id: userId, actualDateFrom: undefined }).exec();
     if (reservations.length === 0) {
       throw new NotFoundException(`Could not find reservation for user_id: ${userId}`);
