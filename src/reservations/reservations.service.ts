@@ -6,7 +6,7 @@ import { Rent } from '../rent/rent.model';
 import { ReservationRequest } from './reservationRequest.dto';
 import { ReservationResponse } from './reservationResponse.dto';
 import { ReservationUpdate } from './reservationUpdate.dto';
-import { RentResponse } from 'src/rent/Rentresponse';
+import { RentResponse } from '../rent/RentResponse';
 
 @Injectable()
 export class ReservationsService {
