@@ -26,13 +26,14 @@ export class ReservationsController {
 
   @Post()
   @Roles(RolesEnum.User)
-  async createReservation(@Req() request, @Body() reservationRequest: ReservationRequest) {
-    const userId = request.user.id;
+  async createReservation(@Req() req, @Body() reservationRequest: ReservationRequest) {
+    const userId = req.user.id;
     const id = await this.reservationService.create(reservationRequest, userId);
     return { id: id };
   }
 
   @Get(':id')
+  @Roles(RolesEnum.Admin)
   async getReservation(@Param('id') reservationId: string) {
     return await this.reservationService.getReservation(reservationId);
   }
@@ -43,29 +44,33 @@ export class ReservationsController {
     return await this.reservationService.getAllReservations();
   }
 
-  @Get('/users')
-  @Roles(RolesEnum.Admin, RolesEnum.User)
-  async getReservationByUserId(@Req() request) {
-    const userId = request.user.id;
+  @Get('/users/:id')
+  @Roles(RolesEnum.User, RolesEnum.Admin)
+  async getReservationByUserId(@Req() req) {
+    const userId = req.user.id;
     return await this.reservationService.getReservationsByUserId(userId);
   }
 
   @Get('/bikes/:id')
+  @Roles(RolesEnum.Admin)
   async getReservationByBikeId(@Param('id') bikeId: string) {
     return await this.reservationService.getReservationsByBikeId(bikeId);
   }
 
   @Patch(':id')
+  @Roles(RolesEnum.User)
   async updateReservation(@Param('id') reservationId: string, @Body() reservationUpdate: ReservationUpdate) {
     await this.reservationService.updateReservation(reservationId, reservationUpdate);
   }
 
   @Delete(':id')
+  @Roles(RolesEnum.User)
   async deleteReservation(@Param('id') reservationId: string) {
     await this.reservationService.deleteReservation(reservationId);
   }
 
   @Put('/rent/:id')
+  @Roles(RolesEnum.Admin)
   async rentBikeEvent(@Param('id') reservationId: string) {
     const reservation = await this.reservationService.rentBike(reservationId);
     if (!reservation) throw new NotFoundException('Reservation with given id does not exist');
@@ -73,6 +78,7 @@ export class ReservationsController {
   }
 
   @Put('/return/:id')
+  @Roles(RolesEnum.Admin)
   async returnBikeEvent(@Param('id') reservationId: string) {
     const reservation = await this.reservationService.returnBike(reservationId);
     if (!reservation) throw new NotFoundException('Reservation with given id does not exist');

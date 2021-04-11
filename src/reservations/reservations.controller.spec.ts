@@ -3,15 +3,17 @@ import * as request from 'supertest';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { Model } from 'mongoose';
 import { Rent } from '../rent/rent.model';
-import { testModuleWithInMemoryDb } from '../utils/test-utils';
+import { testModuleWithInMemoryDb, validJWTToken } from '../utils/test-utils';
 import { ReservationsModule } from './reservations.module';
 import { assert } from 'console';
 import { RentalPointModule } from '../rental-points/rental-point.module';
 import { RentalPoint } from '../rental-points/rental-point.model';
+import { RolesEnum } from '../../src/types/roles';
+import { MockJWTStrategy } from '../utils/mock-auth';
 
 const reservationRequestCorrect = {
   bike_id: '604bf99597d75d9420ec2e5d',
-  user_id: '604bf99597d75d9420ec2e5d',
+  user_id: '1234567891234567891234',
   plannedDateFrom: '2021-03-14',
   plannedDateTo: '2021-03-14',
   rentalPointFrom_id: '604bf99597d75d9420ec2e5d',
@@ -38,6 +40,26 @@ const rentRequestCorrect = {
 
 const reservationsRequests = [reservationRequestCorrect, rentRequestCorrect];
 
+const loggedUser = {
+  id: '1234567891234567891234',
+  email: 'test@test.com',
+  password: 'somePassword',
+  role: RolesEnum.User,
+};
+const loggedUser2 = {
+  id: '1234567891234567891235',
+  email: 'test@test.com',
+  password: 'somePassword',
+  role: RolesEnum.User,
+};
+
+const loggedAdmin = {
+  id: '1234567891234567891234',
+  email: 'admin@test.com',
+  password: 'somePassword',
+  role: RolesEnum.Admin,
+};
+
 const patchRentalPointFromRequest = {
   rentalPointFrom_id: '604bf99597d75d9420ec2e5a',
 };
@@ -60,6 +82,7 @@ describe('ReservationsController', () => {
   beforeAll(async () => {
     const moduleWithDb = await testModuleWithInMemoryDb({
       imports: [RentalPointModule, ReservationsModule],
+      providers: [MockJWTStrategy],
     });
 
     const module = moduleWithDb.module;
@@ -95,6 +118,7 @@ describe('ReservationsController', () => {
     it(`Should return HttpStatus.CREATED`, (done) => {
       request(app.getHttpServer())
         .post('/reservations')
+        .set('Authorization', `Bearer ${validJWTToken(loggedUser)}`)
         .send(reservationRequestCorrect)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -104,6 +128,7 @@ describe('ReservationsController', () => {
     it(`Should return HttpStatus.BAD_REQUEST`, (done) => {
       request(app.getHttpServer())
         .post('/reservations')
+        .set('Authorization', `Bearer ${validJWTToken(loggedUser)}`)
         .send(reservationRequestIncorrectBikeId)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -120,6 +145,7 @@ describe('ReservationsController', () => {
       const givenId = createdReservationId;
       request(app.getHttpServer())
         .get(`/reservations/${givenId}`)
+        .set('Authorization', `Bearer ${validJWTToken(loggedAdmin)}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
         .expect(HttpStatus.OK)
@@ -127,7 +153,7 @@ describe('ReservationsController', () => {
           assert(res.body, {
             id: createdReservationId,
             bike_id: '604bf99597d75d9420ec2e5d',
-            user_id: '604bf99597d75d9420ec2e5d',
+            user_id: '1234567891234567891234',
             plannedDateFrom: '2021-03-14T00:00:00.000Z',
             plannedDateTo: '2021-03-14T00:00:00.000Z',
             rentalPointFrom_id: '604bf99597d75d9420ec2e5d',
@@ -140,6 +166,7 @@ describe('ReservationsController', () => {
       const givenId = 'fakeId';
       request(app.getHttpServer())
         .get(`/reservations/${givenId}`)
+        .set('Authorization', `Bearer ${validJWTToken(loggedAdmin)}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
         .expect(HttpStatus.NOT_FOUND)
@@ -150,11 +177,12 @@ describe('ReservationsController', () => {
     });
   });
 
-  describe('GET /reservations/users/:id', () => {
-    it('should return correct reservations for given userId', (done) => {
-      const givenId = '604bf99597d75d9420ec2e5d';
+  describe('GET /reservations/users', () => {
+    it('should return correct reservations for logged user', (done) => {
+      // const givenId = '604bf99597d75d9420ec2e5d';
       request(app.getHttpServer())
-        .get(`/reservations/users/${givenId}`)
+        .get(`/reservations/users/0`)
+        .set('Authorization', `Bearer ${validJWTToken(loggedUser)}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
         .expect(HttpStatus.OK)
@@ -162,7 +190,7 @@ describe('ReservationsController', () => {
           assert(res.body, {
             id: '604bf99597d75d9420ec2e5d',
             bike_id: '604bf99597d75d9420ec2e5d',
-            user_id: '604bf99597d75d9420ec2e5d',
+            user_id: '1234567891234567891234',
             plannedDateFrom: '2021-03-14T00:00:00.000Z',
             plannedDateTo: '2021-03-14T00:00:00.000Z',
             rentalPointFrom_id: '604bf99597d75d9420ec2e5d',
@@ -175,6 +203,7 @@ describe('ReservationsController', () => {
       const givenId = 'fakeId';
       request(app.getHttpServer())
         .get(`/reservations/users/${givenId}`)
+        .set('Authorization', `Bearer ${validJWTToken(loggedUser2)}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
         .expect(HttpStatus.NOT_FOUND)
@@ -186,10 +215,11 @@ describe('ReservationsController', () => {
   });
 
   describe('GET /reservations/bikes/:id', () => {
-    it('should return correct reservations for given userId', (done) => {
+    it('should return correct reservations for given bikeId', (done) => {
       const givenId = '604bf99597d75d9420ec2e5d';
       request(app.getHttpServer())
         .get(`/reservations/bikes/${givenId}`)
+        .set('Authorization', `Bearer ${validJWTToken(loggedAdmin)}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
         .expect(HttpStatus.OK)
@@ -197,7 +227,7 @@ describe('ReservationsController', () => {
           assert(res.body, {
             id: '604bf99597d75d9420ec2e5d',
             bike_id: '604bf99597d75d9420ec2e5d',
-            user_id: '604bf99597d75d9420ec2e5d',
+            user_id: '1234567891234567891234',
             plannedDateFrom: '2021-03-14T00:00:00.000Z',
             plannedDateTo: '2021-03-14T00:00:00.000Z',
             rentalPointFrom_id: '604bf99597d75d9420ec2e5d',
@@ -210,6 +240,7 @@ describe('ReservationsController', () => {
       const givenId = 'fakeId';
       request(app.getHttpServer())
         .get(`/reservations/bikes/${givenId}`)
+        .set('Authorization', `Bearer ${validJWTToken(loggedAdmin)}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
         .expect(HttpStatus.NOT_FOUND)
@@ -226,6 +257,7 @@ describe('ReservationsController', () => {
       const givenDate = new Date('2021-03-14');
       request(app.getHttpServer())
         .patch(`/reservations/${givenId}`)
+        .set('Authorization', `Bearer ${validJWTToken(loggedUser)}`)
         .send(patchRentalPointFromRequest)
         .set('Accept', 'application/json')
         .expect(HttpStatus.OK)
@@ -234,7 +266,7 @@ describe('ReservationsController', () => {
           expect(reservationsCount).toEqual(2);
           const reservation = await rentModel.findOne({ _id: givenId }).exec();
           expect(reservation.bike_id).toEqual('604bf99597d75d9420ec2e5d');
-          expect(reservation.user_id).toEqual('604bf99597d75d9420ec2e5d');
+          expect(reservation.user_id).toEqual('1234567891234567891234');
           expect(reservation.plannedDateFrom).toEqual(givenDate);
           expect(reservation.plannedDateTo).toEqual(givenDate);
           expect(reservation.rentalPointFrom_id).toEqual(rentalPointMock._id.toString());
@@ -246,6 +278,7 @@ describe('ReservationsController', () => {
       const givenId = createdRentId;
       request(app.getHttpServer())
         .patch(`/reservations/${givenId}`)
+        .set('Authorization', `Bearer ${validJWTToken(loggedUser)}`)
         .expect(HttpStatus.BAD_REQUEST)
         .then((res) => {
           assert(res.body.message, [`Bike has been already picked up.`]);
@@ -259,6 +292,7 @@ describe('ReservationsController', () => {
       const idToDelete = createdReservationId;
       request(app.getHttpServer())
         .delete(`/reservations/${idToDelete}`)
+        .set('Authorization', `Bearer ${validJWTToken(loggedUser)}`)
         .expect(HttpStatus.OK)
         .then(async () => {
           const remainingReservations = await rentModel.find({}).exec();
@@ -271,6 +305,7 @@ describe('ReservationsController', () => {
       await rentModel.deleteOne({ _id: idToDelete });
       request(app.getHttpServer())
         .delete(`/reservations/${idToDelete}`)
+        .set('Authorization', `Bearer ${validJWTToken(loggedUser)}`)
         .expect(HttpStatus.NOT_FOUND)
         .then((res) => {
           assert(res.body.message, [`Could not delete reservation with id: ${idToDelete}`]);
@@ -281,6 +316,7 @@ describe('ReservationsController', () => {
       const idToDelete = createdRentId;
       request(app.getHttpServer())
         .delete(`/reservations/${idToDelete}`)
+        .set('Authorization', `Bearer ${validJWTToken(loggedUser)}`)
         .expect(HttpStatus.BAD_REQUEST)
         .then((res) => {
           assert(res.body.message, [`Bike has been already picked up.`]);
@@ -294,6 +330,7 @@ describe('ReservationsController', () => {
       reservationRequestCorrect.rentalPointFrom_id = rentalPointMock.id;
       request(app.getHttpServer())
         .put(`/reservations/rent/${createdReservationId}`)
+        .set('Authorization', `Bearer ${validJWTToken(loggedAdmin)}`)
         .set('Accept', 'application/json')
         .expect(HttpStatus.OK)
         .then(async (response) => {
@@ -307,6 +344,7 @@ describe('ReservationsController', () => {
     it('Should return NOT_Found if reservation does not exists', (done) => {
       request(app.getHttpServer())
         .put(`/reservations/rent/notExistingId123456789`)
+        .set('Authorization', `Bearer ${validJWTToken(loggedAdmin)}`)
         .set('Accept', 'application/json')
         .expect(HttpStatus.NOT_FOUND, done);
     });
@@ -316,6 +354,7 @@ describe('ReservationsController', () => {
     it('Should update reservation', (done) => {
       request(app.getHttpServer())
         .put(`/reservations/return/${createdReservationId}`)
+        .set('Authorization', `Bearer ${validJWTToken(loggedAdmin)}`)
         .set('Accept', 'application/json')
         .expect(HttpStatus.OK)
         .then(async (response) => {
@@ -329,6 +368,7 @@ describe('ReservationsController', () => {
     it('Should return NOT_Found if reservation does not exists', (done) => {
       request(app.getHttpServer())
         .put(`/reservations/return/notExistingId123456789`)
+        .set('Authorization', `Bearer ${validJWTToken(loggedAdmin)}`)
         .set('Accept', 'application/json')
         .expect(HttpStatus.NOT_FOUND, done);
     });

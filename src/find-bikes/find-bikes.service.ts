@@ -3,8 +3,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Bike } from 'src/bikes/bike.model';
 import { BikeType } from 'src/bikes/bike.type';
+import { RentalPoint } from 'src/rental-points/rental-point.model';
 import { RentalPointService } from 'src/rental-points/rental-points.service';
 import { ReservationsService } from 'src/reservations/reservations.service';
+import { BikeResponse } from './BikeResponse';
 
 @Injectable()
 export class FindBikesService {
@@ -22,26 +24,62 @@ export class FindBikesService {
     return this.bikeModel.find({ type: type });
   }
 
-  async getAllWithLocation() {
+  async getAllWithLocation(reservationDate: Date) {
     const rentalPoints = await this.rentalPointService.getAll();
     const bikes = await this.findAll();
-    const reservations = await this.reservationService.getAllReservations();
-    
-    const response = [];
+    const currentReservations = await this.reservationService.getAllReservations();
+    const currentRents = await this.reservationService.getAllRents();
 
+    let response = [];
+
+    //add all bikes from every rentalPoint
     rentalPoints.forEach(async (point) => {
       point.bicycle_id.forEach(async (id) => {
         const bike = bikes.find((bike) => bike._id == id.toString());
-        const bikeResponse = {
-          bikeId: bike._id,
-          type: bike.type,
-          isElectric: bike.isElectric,
-          frameSize: bike.frameSize,
-          rentalPoint: { id: point._id, location: point.location },
-        };
+        const bikeResponse = this.convertToBikeResponse(bike, point);
         response.push(bikeResponse);
       });
     });
+
+    //add all bikes already rented (removed from rental point) and not yet returned with plannedDateTo before query plannedDateFrom
+    currentRents
+      .filter((rent) => {
+        return rent.plannedDateTo < reservationDate;
+      })
+      .forEach(async (rent) => {
+        const bike = bikes.find((bike) => bike._id == rent.id.toString());
+        const rentalPoint = await this.rentalPointService.getRentalPointById(rent.rentalPointTo_id);
+        const bikeResponse = this.convertToBikeResponse(bike, rentalPoint);
+
+        response.push(bikeResponse);
+      });
+
+    //TODO
+    //add all bikes from reservations where reservation plannedDateTo is less then query plannedDateFrom and get their reservation return location
+
+    const bikeIdsToRemove = currentReservations
+      .filter((reservation) => {
+        return reservation.plannedDateTo > reservationDate;
+      })
+      .map(async (reservation) => {
+        return reservation.bike_id;
+      });
+
+    //remove bikes where reservation plannedDateTo is later then query plannedDateFrom
+    response = response.filter((el) => {
+      return !bikeIdsToRemove.includes(el.bikeId);
+    });
+
     return response;
+  }
+  convertToBikeResponse(bike: Bike, point: RentalPoint): BikeResponse {
+    const bikeResponse = {
+      bikeId: bike._id,
+      type: bike.type,
+      isElectric: bike.isElectric,
+      frameSize: bike.frameSize,
+      rentalPoint: { id: point._id, location: point.location },
+    };
+    return bikeResponse;
   }
 }
