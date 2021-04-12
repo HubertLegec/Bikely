@@ -5,9 +5,6 @@ export class ReservationRequest {
   @IsMongoId()
   @ApiProperty()
   readonly bike_id: string;
-  @IsMongoId()
-  @ApiProperty()
-  readonly user_id: string;
   @IsISO8601()
   @ApiProperty()
   readonly plannedDateFrom: Date;
