@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards, Req, Query } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards, Query } from '@nestjs/common';
 import { Bike } from 'src/bikes/bike.model';
 import { FindBikesService } from './find-bikes.service';
 import { RolesEnum } from '../types/roles';
