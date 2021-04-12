@@ -24,11 +24,12 @@ export class FindBikesService {
     return this.bikeModel.find({ type: type });
   }
 
-  async getAllWithLocation(reservationDate: Date) {
+  async getAllWithLocation(requestedDate) {
     const rentalPoints = await this.rentalPointService.getAll();
     const bikes = await this.findAll();
     const currentReservations = await this.reservationService.getAllReservations();
     const currentRents = await this.reservationService.getAllRents();
+    const parsedRequestedDate = Date.parse(requestedDate);
 
     let response = [];
 
@@ -44,10 +45,10 @@ export class FindBikesService {
     //add all bikes already rented (removed from rental point) and not yet returned with plannedDateTo before query plannedDateFrom
     currentRents
       .filter((rent) => {
-        return rent.plannedDateTo < reservationDate;
+        return Date.parse(rent.plannedDateTo.toString()) < parsedRequestedDate;
       })
       .forEach(async (rent) => {
-        const bike = bikes.find((bike) => bike._id == rent.id.toString());
+        const bike = bikes.find((bike) => bike._id.toString() === rent.id.toString());
         const rentalPoint = await this.rentalPointService.getRentalPointById(rent.rentalPointTo_id);
         const bikeResponse = this.convertToBikeResponse(bike, rentalPoint);
 
@@ -56,20 +57,21 @@ export class FindBikesService {
 
     //TODO
     //add all bikes from reservations where reservation plannedDateTo is less then query plannedDateFrom and get their reservation return location
-
+    // console.log(currentReservations);
     const bikeIdsToRemove = currentReservations
       .filter((reservation) => {
-        return reservation.plannedDateTo > reservationDate;
+        if (reservation.plannedDateTo) {
+          return Date.parse(reservation.plannedDateTo.toString()) > parsedRequestedDate;
+        }
       })
-      .map(async (reservation) => {
+      .map((reservation) => {
         return reservation.bike_id;
       });
 
     //remove bikes where reservation plannedDateTo is later then query plannedDateFrom
     response = response.filter((el) => {
-      return !bikeIdsToRemove.includes(el.bikeId);
+      return !bikeIdsToRemove.includes(el.bikeId.toString());
     });
-
     return response;
   }
   convertToBikeResponse(bike: Bike, point: RentalPoint): BikeResponse {
