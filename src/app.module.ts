@@ -8,11 +8,13 @@ import { UsersModule } from './users/users.module';
 import { ReservationsModule } from './reservations/reservations.module';
 import { RentalPointModule } from './rental-points/rental-point.module';
 
+const { DATABASE_USER, DATABASE_PASSWORD, DATABASE_CLUSTER, DATABASE_NAME } = process.env;
+
 @Module({
   imports: [
     ConfigModule.forRoot(),
     MongooseModule.forRoot(
-      `mongodb+srv://${process.env.DATABASE_USER}:${process.env.DATABASE_PASSWORD}@${process.env.DATABASE_CLUSTER}.d5zkf.mongodb.net/${process.env.DATABASE_NAME}?retryWrites=true&w=majority`,
+      `mongodb+srv://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_CLUSTER}.mongodb.net/${DATABASE_NAME}?retryWrites=true&w=majority`,
     ),
     UsersModule,
     AuthModule,
