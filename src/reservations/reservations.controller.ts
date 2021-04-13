@@ -43,6 +43,11 @@ export class ReservationsController {
     await this.reservationService.deleteReservation(reservationId);
   }
 
+  @Get('/rental_points/:id')
+  async getReservationsForRentalPoint(@Param('id') rentalPointId: string) {
+    return await this.reservationService.getReservationsForRentalPoint(rentalPointId);
+  }
+
   @Put('/rent/:id')
   async rentBikeEvent(@Param('id') reservationId: string) {
     const reservation = await this.reservationService.rentBike(reservationId);
