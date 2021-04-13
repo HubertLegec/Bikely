@@ -6,6 +6,7 @@ import { Rent } from '../rent/rent.model';
 import { ReservationRequest } from './reservationRequest.dto';
 import { ReservationResponse } from './reservationResponse.dto';
 import { ReservationUpdate } from './reservationUpdate.dto';
+import { RentResponse } from '../rent/RentResponse';
 
 @Injectable()
 export class ReservationsService {
@@ -17,7 +18,14 @@ export class ReservationsService {
   async getAllReservations() {
     const reservations = await this.rentModel.find({ actualDateFrom: undefined }).exec();
     return reservations.map((reservation) => {
-      return this.convertToResponse(reservation);
+      return this.convertToReservationResponse(reservation);
+    });
+  }
+
+  async getAllRents() {
+    const rents = await this.rentModel.find().where('actualDateFrom').ne(undefined).exec();
+    return rents.map((rent) => {
+      return this.convertToRentResponse(rent);
     });
   }
 
@@ -26,7 +34,7 @@ export class ReservationsService {
     if (reservation && reservation.actualDateFrom) {
       throw new BadRequestException(`Bike has been already picked up.`);
     }
-    return this.convertToResponse(reservation);
+    return this.convertToReservationResponse(reservation);
   }
 
   async getReservationsByBikeId(bikeId: string) {
@@ -35,7 +43,7 @@ export class ReservationsService {
       throw new NotFoundException(`Could not find reservation for bike_id: ${bikeId}`);
     }
     return reservations.map((reservation) => {
-      return this.convertToResponse(reservation);
+      return this.convertToReservationResponse(reservation);
     });
   }
 
@@ -52,7 +60,7 @@ export class ReservationsService {
       throw new NotFoundException(`Could not find reservation for user_id: ${userId}`);
     }
     return reservations.map((reservation) => {
-      return this.convertToResponse(reservation);
+      return this.convertToReservationResponse(reservation);
     });
   }
 
@@ -90,10 +98,10 @@ export class ReservationsService {
     reservation.save();
   }
 
-  async create(reservationRequest: ReservationRequest) {
+  async create(reservationRequest: ReservationRequest, userId) {
     const newReservation = new this.rentModel({
       bike_id: reservationRequest.bike_id,
-      user_id: reservationRequest.user_id,
+      user_id: userId,
       plannedDateFrom: reservationRequest.plannedDateFrom,
       plannedDateTo: reservationRequest.plannedDateTo,
       rentalPointFrom_id: reservationRequest.rentalPointFrom_id,
@@ -158,7 +166,7 @@ export class ReservationsService {
     }
   }
 
-  convertToResponse(reservation: Rent): ReservationResponse {
+  convertToReservationResponse(reservation: Rent): ReservationResponse {
     const reservationResponse = {
       id: reservation._id,
       bike_id: reservation.bike_id,
@@ -169,5 +177,19 @@ export class ReservationsService {
       rentalPointTo_id: reservation.rentalPointTo_id,
     };
     return reservationResponse;
+  }
+  convertToRentResponse(rent: Rent): RentResponse {
+    const rentResponse = {
+      id: rent._id,
+      bike_id: rent.bike_id,
+      user_id: rent.user_id,
+      plannedDateFrom: rent.plannedDateFrom,
+      plannedDateTo: rent.plannedDateTo,
+      actualDateFrom: rent.actualDateFrom,
+      actualDateTo: rent.actualDateTo,
+      rentalPointFrom_id: rent.rentalPointFrom_id,
+      rentalPointTo_id: rent.rentalPointTo_id,
+    };
+    return rentResponse;
   }
 }
