@@ -131,10 +131,12 @@ export class ReservationsService {
     } else return null;
   }
 
-  async returnBike(reservationId: string): Promise<Rent | null> {
+  async returnBike(reservationId: string, rentalPointTo_id: string): Promise<Rent | null> {
     const reservation = await this.findReservation(reservationId);
-    if (reservation) {
-      this.rentalPointService.addBikeToRentalPoint(reservation.bike_id, reservation.rentalPointFrom_id);
+    const rentalPoint = await this.rentalPointService.getRentalPointById(rentalPointTo_id);
+    if (reservation && rentalPoint) {
+      this.rentalPointService.addBikeToRentalPoint(reservation.bike_id, rentalPointTo_id);
+      reservation.rentalPointTo_id = rentalPointTo_id;
       reservation.actualDateTo = new Date();
       await reservation.save();
       return reservation;
