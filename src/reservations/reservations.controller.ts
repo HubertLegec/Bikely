@@ -10,6 +10,7 @@ import {
   Put,
   UseGuards,
   Req,
+  Query,
 } from '@nestjs/common';
 import { ReservationsService } from './reservations.service';
 import { ReservationRequest } from './reservationRequest.dto';
@@ -76,6 +77,12 @@ export class ReservationsController {
     return await this.reservationService.getReservationsForRentalPoint(rentalPointId);
   }
 
+  @Get('/rents/present')
+  @Roles(RolesEnum.Admin)
+  async getPresentRents() {
+    return await this.reservationService.getPresentRents();
+  }
+
   @Put('/rent/:id')
   @Roles(RolesEnum.Admin)
   async rentBikeEvent(@Param('id') reservationId: string) {
@@ -86,8 +93,8 @@ export class ReservationsController {
 
   @Put('/return/:id')
   @Roles(RolesEnum.Admin)
-  async returnBikeEvent(@Param('id') reservationId: string) {
-    const reservation = await this.reservationService.returnBike(reservationId);
+  async returnBikeEvent(@Query('rentalpoint_id') rentalPointTo_id: string, @Param('id') reservationId: string) {
+    const reservation = await this.reservationService.returnBike(reservationId, rentalPointTo_id);
     if (!reservation) throw new NotFoundException('Reservation with given id does not exist');
     return reservation.toObject();
   }
