@@ -10,10 +10,12 @@ import { RentalPointModule } from '../rental-points/rental-point.module';
 import { RentalPoint } from '../rental-points/rental-point.model';
 import { RolesEnum } from '../../src/types/roles';
 import { MockJWTStrategy } from '../utils/mock-auth';
+import { UsersModule } from '../users/users.module';
+import { BikesModule } from '../bikes/bikes.module';
 
 const reservationRequestCorrect = {
   bike_id: '604bf99597d75d9420ec2e5d',
-  user_id: '1234567891234567891234',
+  user_id: '604fa1f255eeb15b4ca5cb62',
   plannedDateFrom: '2021-03-14',
   plannedDateTo: '2021-03-14',
   rentalPointFrom_id: '604bf99597d75d9420ec2e5d',
@@ -41,20 +43,20 @@ const rentRequestCorrect = {
 const reservationsRequests = [reservationRequestCorrect, rentRequestCorrect];
 
 const loggedUser = {
-  id: '1234567891234567891234',
+  id: '604fa1f255eeb15b4ca5cb62',
   email: 'test@test.com',
   password: 'somePassword',
   role: RolesEnum.User,
 };
 const loggedUser2 = {
-  id: '1234567891234567891235',
+  id: '60591594075a0720e01df154',
   email: 'test@test.com',
   password: 'somePassword',
   role: RolesEnum.User,
 };
 
 const loggedAdmin = {
-  id: '1234567891234567891234',
+  id: '60737b37f3a17f496cabd8bd',
   email: 'admin@test.com',
   password: 'somePassword',
   role: RolesEnum.Admin,
@@ -81,7 +83,7 @@ describe('ReservationsController', () => {
 
   beforeAll(async () => {
     const moduleWithDb = await testModuleWithInMemoryDb({
-      imports: [RentalPointModule, ReservationsModule],
+      imports: [RentalPointModule, ReservationsModule, UsersModule, BikesModule],
       providers: [MockJWTStrategy],
     });
 
@@ -153,7 +155,7 @@ describe('ReservationsController', () => {
           assert(res.body, {
             id: createdReservationId,
             bike_id: '604bf99597d75d9420ec2e5d',
-            user_id: '1234567891234567891234',
+            user_id: '604fa1f255eeb15b4ca5cb62',
             plannedDateFrom: '2021-03-14T00:00:00.000Z',
             plannedDateTo: '2021-03-14T00:00:00.000Z',
             rentalPointFrom_id: '604bf99597d75d9420ec2e5d',
@@ -163,9 +165,9 @@ describe('ReservationsController', () => {
         });
     });
     it('should return 404', (done) => {
-      const givenId = 'fakeId';
+      const notExistingId = '60737b53f3a17f496cabd8bf';
       request(app.getHttpServer())
-        .get(`/reservations/${givenId}`)
+        .get(`/reservations/${notExistingId}`)
         .set('Authorization', `Bearer ${validJWTToken(loggedAdmin)}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -179,9 +181,8 @@ describe('ReservationsController', () => {
 
   describe('GET /reservations/users', () => {
     it('should return correct reservations for logged user', (done) => {
-      // const givenId = '604bf99597d75d9420ec2e5d';
       request(app.getHttpServer())
-        .get(`/reservations/users/0`)
+        .get(`/reservations/users/`)
         .set('Authorization', `Bearer ${validJWTToken(loggedUser)}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -190,7 +191,7 @@ describe('ReservationsController', () => {
           assert(res.body, {
             id: '604bf99597d75d9420ec2e5d',
             bike_id: '604bf99597d75d9420ec2e5d',
-            user_id: '1234567891234567891234',
+            user_id: reservationRequestCorrect.user_id,
             plannedDateFrom: '2021-03-14T00:00:00.000Z',
             plannedDateTo: '2021-03-14T00:00:00.000Z',
             rentalPointFrom_id: '604bf99597d75d9420ec2e5d',
@@ -200,9 +201,9 @@ describe('ReservationsController', () => {
         });
     });
     it('should return 404', (done) => {
-      const givenId = 'fakeId';
+      const notExistingId = '60737b53f3a17f496cabd8bf';
       request(app.getHttpServer())
-        .get(`/reservations/users/${givenId}`)
+        .get(`/reservations/users/${notExistingId}`)
         .set('Authorization', `Bearer ${validJWTToken(loggedUser2)}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -237,9 +238,9 @@ describe('ReservationsController', () => {
         });
     });
     it('should return 404', (done) => {
-      const givenId = 'fakeId';
+      const notExistingId = '60737b53f3a17f496cabd8bf';
       request(app.getHttpServer())
-        .get(`/reservations/bikes/${givenId}`)
+        .get(`/reservations/bikes/${notExistingId}`)
         .set('Authorization', `Bearer ${validJWTToken(loggedAdmin)}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -265,12 +266,12 @@ describe('ReservationsController', () => {
           const reservationsCount = await rentModel.countDocuments({}).exec();
           expect(reservationsCount).toEqual(2);
           const reservation = await rentModel.findOne({ _id: givenId }).exec();
-          expect(reservation.bike_id).toEqual('604bf99597d75d9420ec2e5d');
-          expect(reservation.user_id).toEqual('1234567891234567891234');
+          expect(reservation.bike_id.toString()).toEqual('604bf99597d75d9420ec2e5d');
+          expect(reservation.user_id.toString()).toEqual(reservationRequestCorrect.user_id);
           expect(reservation.plannedDateFrom).toEqual(givenDate);
           expect(reservation.plannedDateTo).toEqual(givenDate);
-          expect(reservation.rentalPointFrom_id).toEqual(rentalPointMock._id.toString());
-          expect(reservation.rentalPointTo_id).toEqual(rentalPointMock._id.toString());
+          expect(reservation.rentalPointFrom_id.toString()).toEqual(rentalPointMock._id.toString());
+          expect(reservation.rentalPointTo_id.toString()).toEqual(rentalPointMock._id.toString());
           done();
         });
     });
@@ -336,7 +337,7 @@ describe('ReservationsController', () => {
         .then(async (response) => {
           expect(response.body.actualDateFrom).toBeTruthy();
           rentalPointMock = await rentalPointModel.findById(rentalPointMock.id);
-          expect(rentalPointMock.bicycle_id.length).toBe(1);
+          expect(rentalPointMock.bicycle_id.length).toBe(2);
           done();
         });
     });
@@ -362,7 +363,7 @@ describe('ReservationsController', () => {
         .then(async (response) => {
           expect(response.body.actualDateTo).toBeTruthy();
           rentalPointMock = await rentalPointModel.findById(rentalPointMock.id);
-          expect(rentalPointMock.bicycle_id.length).toBe(2);
+          expect(rentalPointMock.bicycle_id.length).toBe(3);
           done();
         });
     });

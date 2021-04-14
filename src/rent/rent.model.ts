@@ -1,15 +1,16 @@
 import * as mongoose from 'mongoose';
+const Schema = mongoose.Schema;
 
 export const RentSchema = new mongoose.Schema(
   {
-    bike_id: { type: String, required: true },
-    user_id: { type: String, required: true },
+    bike_id: { type: Schema.Types.ObjectId, ref: 'Bike', required: true },
+    user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     plannedDateFrom: { type: Date, required: true },
     plannedDateTo: { type: Date, required: true },
     actualDateFrom: { type: Date },
     actualDateTo: { type: Date },
-    rentalPointFrom_id: { type: String, required: true },
-    rentalPointTo_id: { type: String, required: true },
+    rentalPointFrom_id: { type: Schema.Types.ObjectId, ref: 'RentalPoint', required: true },
+    rentalPointTo_id: { type: Schema.Types.ObjectId, ref: 'RentalPoint', required: true },
   },
   { optimisticConcurrency: true },
 );
