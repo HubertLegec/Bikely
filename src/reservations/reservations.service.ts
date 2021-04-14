@@ -30,7 +30,12 @@ export class ReservationsService {
   }
 
   async getPresentRents() {
-    const rents = await this.rentModel.find({ actualDateTo: undefined }).where('actualDateFrom').ne(undefined).populate('user_id', 'email').exec();
+    const rents = await this.rentModel
+      .find({ actualDateTo: undefined })
+      .where('actualDateFrom')
+      .ne(undefined)
+      .populate('user_id', 'email')
+      .exec();
     return rents.map((rent) => {
       return this.convertToRentResponse(rent);
     });
