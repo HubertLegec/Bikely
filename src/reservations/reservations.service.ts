@@ -38,6 +38,7 @@ export class ReservationsService {
 
   async getReservation(reservationId: string) {
     const reservation = await this.findReservation(reservationId);
+
     if (reservation && reservation.actualDateFrom) {
       throw new BadRequestException(`Bike has been already picked up.`);
     }
@@ -55,7 +56,14 @@ export class ReservationsService {
   }
 
   async getReservationsByUserId(userId: string) {
-    const reservations = await this.rentModel.find({ user_id: userId, actualDateFrom: undefined }).exec();
+    const reservations = await this.rentModel
+      .find({ user_id: userId })
+      .populate('user_id', 'email')
+      .populate('bike_id')
+      .populate('rentalPointFrom_id', 'location')
+      .populate('rentalPointTo_id', 'location')
+      .exec();
+
     if (reservations.length === 0) {
       throw new NotFoundException(`Could not find reservation for user_id: ${userId}`);
     }
@@ -99,22 +107,28 @@ export class ReservationsService {
   }
 
   async create(reservationRequest: ReservationRequest, userId) {
-    const newReservation = new this.rentModel({
-      bike_id: reservationRequest.bike_id,
-      user_id: userId,
-      plannedDateFrom: reservationRequest.plannedDateFrom,
-      plannedDateTo: reservationRequest.plannedDateTo,
-      rentalPointFrom_id: reservationRequest.rentalPointFrom_id,
-      rentalPointTo_id: reservationRequest.rentalPointTo_id,
-    });
-    const result = await newReservation.save();
-    return result.id;
+    try {
+      const newReservation = new this.rentModel({
+        bike_id: reservationRequest.bike_id,
+        user_id: userId,
+        plannedDateFrom: reservationRequest.plannedDateFrom,
+        plannedDateTo: reservationRequest.plannedDateTo,
+        rentalPointFrom_id: reservationRequest.rentalPointFrom_id,
+        rentalPointTo_id: reservationRequest.rentalPointTo_id,
+      });
+      const result = await newReservation.save();
+      return result.id;
+    } catch (error) {
+      console.log(error);
+      throw new Error(error);
+    }
   }
 
   async findReservation(reservationId: string) {
     let reservation: Rent;
     try {
       reservation = await this.rentModel.findById(reservationId).exec();
+      if (!reservation) throw new NotFoundException(`Could not find reservation with id: ${reservationId}`);
     } catch (error) {
       throw new NotFoundException(`Could not find reservation with id: ${reservationId}`);
     }
@@ -141,6 +155,31 @@ export class ReservationsService {
       await reservation.save();
       return reservation;
     } else return null;
+  }
+
+  async getReservationsForRentalPoint(rentalPointId: string) {
+    try {
+      const upcomingReservations = await this.rentModel
+        .find({
+          rentalPointFrom_id: rentalPointId,
+          actualDateFrom: undefined,
+        })
+        .populate('user_id', 'email')
+        .populate('bike_id')
+        .exec();
+      const upcomingReturns = await this.rentModel
+        .find({
+          rentalPointFrom_id: rentalPointId,
+          actualDateFrom: { $lt: new Date() },
+        })
+        .populate('user_id', 'email')
+        .populate('bike_id')
+        .exec();
+
+      return [...upcomingReservations, ...upcomingReturns];
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
   convertToReservationResponse(reservation: Rent): ReservationResponse {
