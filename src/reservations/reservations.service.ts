@@ -29,6 +29,13 @@ export class ReservationsService {
     });
   }
 
+  async getPresentRents() {
+    const rents = await this.rentModel.find({ actualDateTo: undefined }).where('actualDateFrom').ne(undefined).exec();
+    return rents.map((rent) => {
+      return this.convertToRentResponse(rent);
+    });
+  }
+
   async getReservation(reservationId: string) {
     const reservation = await this.findReservation(reservationId);
     if (reservation && reservation.actualDateFrom) {

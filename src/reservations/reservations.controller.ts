@@ -69,6 +69,12 @@ export class ReservationsController {
     await this.reservationService.deleteReservation(reservationId);
   }
 
+  @Get('/rents/present')
+  @Roles(RolesEnum.Admin)
+  async getPresentRents() {
+    return await this.reservationService.getPresentRents();
+  }
+
   @Put('/rent/:id')
   @Roles(RolesEnum.Admin)
   async rentBikeEvent(@Param('id') reservationId: string) {
