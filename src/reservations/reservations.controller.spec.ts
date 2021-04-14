@@ -353,7 +353,9 @@ describe('ReservationsController', () => {
   describe('PUT /reservation/return/:id', () => {
     it('Should update reservation', (done) => {
       request(app.getHttpServer())
-        .put(`/reservations/return/${createdReservationId}`)
+        .put(
+          `/reservations/return/${createdReservationId}?rentalpoint_id=${reservationRequestCorrect.rentalPointTo_id}`,
+        )
         .set('Authorization', `Bearer ${validJWTToken(loggedAdmin)}`)
         .set('Accept', 'application/json')
         .expect(HttpStatus.OK)
