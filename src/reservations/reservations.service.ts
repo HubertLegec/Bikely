@@ -31,6 +31,7 @@ export class ReservationsService {
 
   async getReservation(reservationId: string) {
     const reservation = await this.findReservation(reservationId);
+
     if (reservation && reservation.actualDateFrom) {
       throw new BadRequestException(`Bike has been already picked up.`);
     }
@@ -99,22 +100,28 @@ export class ReservationsService {
   }
 
   async create(reservationRequest: ReservationRequest, userId) {
-    const newReservation = new this.rentModel({
-      bike_id: reservationRequest.bike_id,
-      user_id: userId,
-      plannedDateFrom: reservationRequest.plannedDateFrom,
-      plannedDateTo: reservationRequest.plannedDateTo,
-      rentalPointFrom_id: reservationRequest.rentalPointFrom_id,
-      rentalPointTo_id: reservationRequest.rentalPointTo_id,
-    });
-    const result = await newReservation.save();
-    return result.id;
+    try {
+      const newReservation = new this.rentModel({
+        bike_id: reservationRequest.bike_id,
+        user_id: userId,
+        plannedDateFrom: reservationRequest.plannedDateFrom,
+        plannedDateTo: reservationRequest.plannedDateTo,
+        rentalPointFrom_id: reservationRequest.rentalPointFrom_id,
+        rentalPointTo_id: reservationRequest.rentalPointTo_id,
+      });
+      const result = await newReservation.save();
+      return result.id;
+    } catch (error) {
+      console.log(error);
+      throw new Error(error);
+    }
   }
 
   async findReservation(reservationId: string) {
     let reservation: Rent;
     try {
       reservation = await this.rentModel.findById(reservationId).exec();
+      if (!reservation) throw new NotFoundException(`Could not find reservation with id: ${reservationId}`);
     } catch (error) {
       throw new NotFoundException(`Could not find reservation with id: ${reservationId}`);
     }

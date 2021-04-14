@@ -32,6 +32,13 @@ export class ReservationsController {
     return { id: id };
   }
 
+  @Get('/users')
+  @Roles(RolesEnum.User, RolesEnum.Admin)
+  async getReservationByUserId(@Req() req) {
+    const userId = req.user.id;
+    return await this.reservationService.getReservationsByUserId(userId);
+  }
+
   @Get(':id')
   @Roles(RolesEnum.Admin)
   async getReservation(@Param('id') reservationId: string) {
@@ -44,17 +51,12 @@ export class ReservationsController {
     return await this.reservationService.getAllReservations();
   }
 
-  @Get('/users/:id')
-  @Roles(RolesEnum.User, RolesEnum.Admin)
-  async getReservationByUserId(@Req() req) {
-    const userId = req.user.id;
-    return await this.reservationService.getReservationsByUserId(userId);
-  }
-
   @Get('/bikes/:id')
   @Roles(RolesEnum.Admin)
   async getReservationByBikeId(@Param('id') bikeId: string) {
-    return await this.reservationService.getReservationsByBikeId(bikeId);
+    const reservation = await this.reservationService.getReservationsByBikeId(bikeId);
+    if (reservation) return reservation;
+    throw new NotFoundException('Reservation with given ID was not found');
   }
 
   @Patch(':id')
