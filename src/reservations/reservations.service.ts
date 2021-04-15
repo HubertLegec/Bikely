@@ -16,21 +16,26 @@ export class ReservationsService {
   ) {}
 
   async getAllReservations() {
-    const reservations = await this.rentModel.find({ actualDateFrom: undefined }).exec();
+    const reservations = await this.rentModel.find({ actualDateFrom: undefined }).populate('user_id', 'email').exec();
     return reservations.map((reservation) => {
       return this.convertToReservationResponse(reservation);
     });
   }
 
   async getAllRents() {
-    const rents = await this.rentModel.find().where('actualDateFrom').ne(undefined).exec();
+    const rents = await this.rentModel.find().where('actualDateFrom').ne(undefined).populate('user_id', 'email').exec();
     return rents.map((rent) => {
       return this.convertToRentResponse(rent);
     });
   }
 
   async getPresentRents() {
-    const rents = await this.rentModel.find({ actualDateTo: undefined }).where('actualDateFrom').ne(undefined).exec();
+    const rents = await this.rentModel
+      .find({ actualDateTo: undefined })
+      .where('actualDateFrom')
+      .ne(undefined)
+      .populate('user_id', 'email')
+      .exec();
     return rents.map((rent) => {
       return this.convertToRentResponse(rent);
     });
