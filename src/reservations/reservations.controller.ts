@@ -40,12 +40,6 @@ export class ReservationsController {
     return await this.reservationService.getReservationsByUserId(userId);
   }
 
-  @Get(':id')
-  @Roles(RolesEnum.Admin)
-  async getReservation(@Param('id') reservationId: string) {
-    return await this.reservationService.getReservation(reservationId);
-  }
-
   @Get()
   @Roles(RolesEnum.Admin)
   async getAllReservations() {
@@ -97,5 +91,11 @@ export class ReservationsController {
     const reservation = await this.reservationService.returnBike(reservationId, rentalPointTo_id);
     if (!reservation) throw new NotFoundException('Reservation with given id does not exist');
     return reservation.toObject();
+  }
+
+  @Get(':id')
+  @Roles(RolesEnum.Admin)
+  async getReservation(@Param('id') reservationId: string) {
+    return await this.reservationService.getReservation(reservationId);
   }
 }
